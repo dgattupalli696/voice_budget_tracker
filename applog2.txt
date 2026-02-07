@@ -1,0 +1,165 @@
+[2026-02-03 16:37:59.875] [INFO] [FileLogger] === App Started ===
+[2026-02-03 16:37:59.877] [INFO] [FileLogger] Log file: /data/user/0/com.budgettracker/files/logs/app_log.txt
+[2026-02-03 16:37:59.878] [INFO] [BudgetTrackerApp] Application onCreate
+[2026-02-03 16:38:00.764] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 16:38:00.764] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 16:38:04.615] [INFO] [TextCorrectionManager] reinitialize() called
+[2026-02-03 16:38:04.615] [INFO] [TextCorrectionManager] initialize() called, isInitialized=false
+[2026-02-03 16:38:04.615] [INFO] [TextCorrectionManager] Rule-based corrector initialized
+[2026-02-03 16:38:04.615] [INFO] [TextCorrectionManager] Model path from manager: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:38:04.615] [INFO] [TextCorrectionManager] Creating MediaPipeTextCorrector...
+[2026-02-03 16:38:04.616] [INFO] [TextCorrectionManager] Calling mediaPipeCorrector.initialize()...
+[2026-02-03 16:38:04.616] [INFO] [MediaPipeTextCorrector] initialize() called, modelPath=/data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:38:04.616] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 24MB, Free: 39MB, Total: 64MB, Max: 512MB
+[2026-02-03 16:38:04.617] [INFO] [MediaPipeTextCorrector] System Memory - Available: 3715MB, Total: 11113MB, LowMemory: false
+[2026-02-03 16:38:04.617] [INFO] [MediaPipeTextCorrector] Model file path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:38:04.617] [INFO] [MediaPipeTextCorrector] Model file exists: true
+[2026-02-03 16:38:04.617] [INFO] [MediaPipeTextCorrector] Model file size: 554661243 bytes (528 MB)
+[2026-02-03 16:38:04.617] [INFO] [MediaPipeTextCorrector] Detected model type: GEMMA for gemma3-1b-it-int4.task
+[2026-02-03 16:38:04.742] [INFO] [MediaPipeTextCorrector] Memory after GC:
+[2026-02-03 16:38:04.742] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 5MB, Free: 23MB, Total: 29MB, Max: 512MB
+[2026-02-03 16:38:04.742] [INFO] [MediaPipeTextCorrector] System Memory - Available: 3702MB, Total: 11113MB, LowMemory: false
+[2026-02-03 16:38:04.743] [INFO] [MediaPipeTextCorrector] Creating LlmInferenceOptions with GPU preference...
+[2026-02-03 16:38:04.744] [INFO] [MediaPipeTextCorrector] LlmInferenceOptions created successfully
+[2026-02-03 16:38:04.744] [INFO] [MediaPipeTextCorrector] Calling LlmInference.createFromOptions()...
+[2026-02-03 16:38:04.744] [INFO] [MediaPipeTextCorrector] This may take a while for large models...
+[2026-02-03 16:55:11.961] [INFO] [FileLogger] === App Started ===
+[2026-02-03 16:55:11.964] [INFO] [FileLogger] Log file: /data/user/0/com.budgettracker/files/logs/app_log.txt
+[2026-02-03 16:55:11.965] [INFO] [BudgetTrackerApp] Application onCreate
+[2026-02-03 16:55:13.793] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 16:55:13.793] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 16:55:23.350] [INFO] [TextCorrectionManager] reinitialize() called
+[2026-02-03 16:55:23.351] [INFO] [TextCorrectionManager] initialize() called, isInitialized=false
+[2026-02-03 16:55:23.352] [INFO] [TextCorrectionManager] Rule-based corrector initialized
+[2026-02-03 16:55:23.352] [INFO] [TextCorrectionManager] Model path from manager: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:55:23.352] [INFO] [TextCorrectionManager] Creating MediaPipeTextCorrector...
+[2026-02-03 16:55:23.353] [INFO] [TextCorrectionManager] Calling mediaPipeCorrector.initialize()...
+[2026-02-03 16:55:23.354] [INFO] [MediaPipeTextCorrector] initialize() called, modelPath=/data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:55:23.356] [INFO] [MediaPipeTextCorrector] Running on emulator: false
+[2026-02-03 16:55:23.356] [INFO] [MediaPipeTextCorrector] Device: samsung SM-S938B
+[2026-02-03 16:55:23.356] [INFO] [MediaPipeTextCorrector] Android: 16 (SDK 36)
+[2026-02-03 16:55:23.356] [INFO] [MediaPipeTextCorrector] ABI: arm64-v8a
+[2026-02-03 16:55:23.357] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 26MB, Free: 0MB, Total: 26MB, Max: 512MB
+[2026-02-03 16:55:23.358] [INFO] [MediaPipeTextCorrector] System Memory - Available: 1498MB, Total: 11113MB, LowMemory: false
+[2026-02-03 16:55:23.358] [INFO] [MediaPipeTextCorrector] Model file path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:55:23.358] [INFO] [MediaPipeTextCorrector] Model file exists: true
+[2026-02-03 16:55:23.358] [INFO] [MediaPipeTextCorrector] Model file size: 554661243 bytes (528 MB)
+[2026-02-03 16:55:23.373] [INFO] [MediaPipeTextCorrector] Model file header (hex): 00 00 00 00 50 4B 03 04 14 00 00 00 00 00 8E 3C
+[2026-02-03 16:55:23.378] [INFO] [MediaPipeTextCorrector] Possible identifier at offset 4: PK
+[2026-02-03 16:55:23.378] [INFO] [MediaPipeTextCorrector] Detected model type: GEMMA for gemma3-1b-it-int4.task
+[2026-02-03 16:55:23.547] [INFO] [MediaPipeTextCorrector] Memory after GC:
+[2026-02-03 16:55:23.547] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 5MB, Free: 23MB, Total: 29MB, Max: 512MB
+[2026-02-03 16:55:23.549] [INFO] [MediaPipeTextCorrector] System Memory - Available: 1410MB, Total: 11113MB, LowMemory: false
+[2026-02-03 16:55:23.549] [INFO] [MediaPipeTextCorrector] Creating LlmInferenceOptions...
+[2026-02-03 16:55:23.551] [INFO] [MediaPipeTextCorrector] LlmInferenceOptions built: maxTokens=256, temp=0.8, topK=40
+[2026-02-03 16:55:23.552] [INFO] [MediaPipeTextCorrector] Calling LlmInference.createFromOptions()...
+[2026-02-03 16:55:23.552] [INFO] [MediaPipeTextCorrector] Model path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.task
+[2026-02-03 16:55:23.552] [INFO] [MediaPipeTextCorrector] This may take 30-60 seconds for large models on first load...
+[2026-02-03 17:08:31.371] [INFO] [FileLogger] === App Started ===
+[2026-02-03 17:08:31.374] [INFO] [FileLogger] Log file: /data/user/0/com.budgettracker/files/logs/app_log.txt
+[2026-02-03 17:08:31.375] [INFO] [BudgetTrackerApp] Application onCreate
+[2026-02-03 17:08:32.607] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 17:08:32.608] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 17:08:43.715] [INFO] [TextCorrectionManager] reinitialize() called
+[2026-02-03 17:08:43.716] [INFO] [TextCorrectionManager] initialize() called, isInitialized=false
+[2026-02-03 17:08:43.716] [INFO] [TextCorrectionManager] Rule-based corrector initialized
+[2026-02-03 17:08:43.716] [INFO] [TextCorrectionManager] Model path from manager: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:08:43.716] [INFO] [TextCorrectionManager] Creating MediaPipeTextCorrector...
+[2026-02-03 17:08:43.717] [INFO] [TextCorrectionManager] Calling mediaPipeCorrector.initialize()...
+[2026-02-03 17:08:43.717] [INFO] [MediaPipeTextCorrector] initialize() called, modelPath=/data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:08:43.719] [INFO] [MediaPipeTextCorrector] Running on emulator: false
+[2026-02-03 17:08:43.720] [INFO] [MediaPipeTextCorrector] Device: samsung SM-S938B
+[2026-02-03 17:08:43.720] [INFO] [MediaPipeTextCorrector] Android: 16 (SDK 36)
+[2026-02-03 17:08:43.720] [INFO] [MediaPipeTextCorrector] ABI: arm64-v8a
+[2026-02-03 17:08:43.721] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 27MB, Free: 0MB, Total: 27MB, Max: 512MB
+[2026-02-03 17:08:43.721] [INFO] [MediaPipeTextCorrector] System Memory - Available: 2832MB, Total: 11113MB, LowMemory: false
+[2026-02-03 17:08:43.722] [INFO] [MediaPipeTextCorrector] Model file path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:08:43.722] [INFO] [MediaPipeTextCorrector] Model file exists: true
+[2026-02-03 17:08:43.722] [INFO] [MediaPipeTextCorrector] Model file size: 584417280 bytes (557 MB)
+[2026-02-03 17:08:43.724] [INFO] [MediaPipeTextCorrector] Model file header (hex): 4C 49 54 45 52 54 4C 4D 01 00 00 00 00 00 00 00
+[2026-02-03 17:08:43.724] [INFO] [MediaPipeTextCorrector] Possible identifier at offset 4: RTLM
+[2026-02-03 17:08:43.724] [INFO] [MediaPipeTextCorrector] Detected model type: GEMMA for gemma3-1b-it-int4.litertlm
+[2026-02-03 17:08:43.918] [INFO] [MediaPipeTextCorrector] Memory after GC:
+[2026-02-03 17:08:43.918] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 5MB, Free: 23MB, Total: 29MB, Max: 512MB
+[2026-02-03 17:08:43.919] [INFO] [MediaPipeTextCorrector] System Memory - Available: 2928MB, Total: 11113MB, LowMemory: false
+[2026-02-03 17:08:43.919] [INFO] [MediaPipeTextCorrector] Creating LlmInferenceOptions...
+[2026-02-03 17:08:43.922] [INFO] [MediaPipeTextCorrector] LlmInferenceOptions built: maxTokens=256, temp=0.8, topK=40
+[2026-02-03 17:08:43.922] [INFO] [MediaPipeTextCorrector] Calling LlmInference.createFromOptions()...
+[2026-02-03 17:08:43.923] [INFO] [MediaPipeTextCorrector] Model path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:08:43.923] [INFO] [MediaPipeTextCorrector] This may take 30-60 seconds for large models on first load...
+[2026-02-03 17:08:43.985] [ERROR] [MediaPipeTextCorrector] Exception during MediaPipe LLM init
+Exception: MediaPipeException: internal: Failed to initialize session: %s; RET_CHECK failure (external/odml/odml/infra/genai/inference/utils/llm_utils/model_data.cc:403) modelError building tflite model.
+com.google.mediapipe.framework.MediaPipeException: internal: Failed to initialize session: %s; RET_CHECK failure (external/odml/odml/infra/genai/inference/utils/llm_utils/model_data.cc:403) modelError building tflite model.
+	at com.google.mediapipe.tasks.core.LlmTaskRunner.nativeCreateSession(Native Method)
+	at com.google.mediapipe.tasks.core.LlmTaskRunner.<init>(LlmTaskRunner.java:44)
+	at com.google.mediapipe.tasks.genai.llminference.LlmInference.<init>(LlmInference.java:84)
+	at com.google.mediapipe.tasks.genai.llminference.LlmInference.createFromOptions(LlmInference.java:49)
+	at com.budgettracker.ai.MediaPipeTextCorrector$initialize$2.invokeSuspend(MediaPipeTextCorrector.kt:130)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+
+[2026-02-03 17:08:43.986] [WARN] [TextCorrectionManager] AI model failed to load, using rule-based fallback
+[2026-02-03 17:08:43.986] [INFO] [TextCorrectionManager] TextCorrectionManager initialized (AI: false)
+[2026-02-03 17:09:16.132] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 17:09:16.133] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 17:09:35.587] [INFO] [FileLogger] === App Started ===
+[2026-02-03 17:09:35.589] [INFO] [FileLogger] Log file: /data/user/0/com.budgettracker/files/logs/app_log.txt
+[2026-02-03 17:09:35.590] [INFO] [BudgetTrackerApp] Application onCreate
+[2026-02-03 17:09:40.908] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 17:09:40.909] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 17:09:49.577] [INFO] [TextCorrectionManager] reinitialize() called
+[2026-02-03 17:09:49.578] [INFO] [TextCorrectionManager] initialize() called, isInitialized=false
+[2026-02-03 17:09:49.579] [INFO] [TextCorrectionManager] Rule-based corrector initialized
+[2026-02-03 17:09:49.579] [INFO] [TextCorrectionManager] Model path from manager: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:09:49.579] [INFO] [TextCorrectionManager] Creating MediaPipeTextCorrector...
+[2026-02-03 17:09:49.580] [INFO] [TextCorrectionManager] Calling mediaPipeCorrector.initialize()...
+[2026-02-03 17:09:49.580] [INFO] [MediaPipeTextCorrector] initialize() called, modelPath=/data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:09:49.582] [INFO] [MediaPipeTextCorrector] Running on emulator: false
+[2026-02-03 17:09:49.583] [INFO] [MediaPipeTextCorrector] Device: samsung SM-S938B
+[2026-02-03 17:09:49.583] [INFO] [MediaPipeTextCorrector] Android: 16 (SDK 36)
+[2026-02-03 17:09:49.583] [INFO] [MediaPipeTextCorrector] ABI: arm64-v8a
+[2026-02-03 17:09:49.584] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 5MB, Free: 23MB, Total: 29MB, Max: 512MB
+[2026-02-03 17:09:49.585] [INFO] [MediaPipeTextCorrector] System Memory - Available: 2882MB, Total: 11113MB, LowMemory: false
+[2026-02-03 17:09:49.585] [INFO] [MediaPipeTextCorrector] Model file path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:09:49.585] [INFO] [MediaPipeTextCorrector] Model file exists: true
+[2026-02-03 17:09:49.585] [INFO] [MediaPipeTextCorrector] Model file size: 584417280 bytes (557 MB)
+[2026-02-03 17:09:49.586] [INFO] [MediaPipeTextCorrector] Model file header (hex): 4C 49 54 45 52 54 4C 4D 01 00 00 00 00 00 00 00
+[2026-02-03 17:09:49.586] [INFO] [MediaPipeTextCorrector] Possible identifier at offset 4: RTLM
+[2026-02-03 17:09:49.586] [INFO] [MediaPipeTextCorrector] Detected model type: GEMMA for gemma3-1b-it-int4.litertlm
+[2026-02-03 17:09:49.734] [INFO] [MediaPipeTextCorrector] Memory after GC:
+[2026-02-03 17:09:49.735] [INFO] [MediaPipeTextCorrector] JVM Memory - Used: 5MB, Free: 23MB, Total: 29MB, Max: 512MB
+[2026-02-03 17:09:49.736] [INFO] [MediaPipeTextCorrector] System Memory - Available: 2829MB, Total: 11113MB, LowMemory: false
+[2026-02-03 17:09:49.736] [INFO] [MediaPipeTextCorrector] Creating LlmInferenceOptions...
+[2026-02-03 17:09:49.738] [INFO] [MediaPipeTextCorrector] LlmInferenceOptions built: maxTokens=256, temp=0.8, topK=40
+[2026-02-03 17:09:49.738] [INFO] [MediaPipeTextCorrector] Calling LlmInference.createFromOptions()...
+[2026-02-03 17:09:49.739] [INFO] [MediaPipeTextCorrector] Model path: /data/user/0/com.budgettracker/files/models/gemma3-1b-it-int4.litertlm
+[2026-02-03 17:09:49.739] [INFO] [MediaPipeTextCorrector] This may take 30-60 seconds for large models on first load...
+[2026-02-03 17:09:49.784] [ERROR] [MediaPipeTextCorrector] Exception during MediaPipe LLM init
+Exception: MediaPipeException: internal: Failed to initialize session: %s; RET_CHECK failure (external/odml/odml/infra/genai/inference/utils/llm_utils/model_data.cc:403) modelError building tflite model.
+com.google.mediapipe.framework.MediaPipeException: internal: Failed to initialize session: %s; RET_CHECK failure (external/odml/odml/infra/genai/inference/utils/llm_utils/model_data.cc:403) modelError building tflite model.
+	at com.google.mediapipe.tasks.core.LlmTaskRunner.nativeCreateSession(Native Method)
+	at com.google.mediapipe.tasks.core.LlmTaskRunner.<init>(LlmTaskRunner.java:44)
+	at com.google.mediapipe.tasks.genai.llminference.LlmInference.<init>(LlmInference.java:84)
+	at com.google.mediapipe.tasks.genai.llminference.LlmInference.createFromOptions(LlmInference.java:49)
+	at com.budgettracker.ai.MediaPipeTextCorrector$initialize$2.invokeSuspend(MediaPipeTextCorrector.kt:130)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+
+[2026-02-03 17:09:49.786] [WARN] [TextCorrectionManager] AI model failed to load, using rule-based fallback
+[2026-02-03 17:09:49.786] [INFO] [TextCorrectionManager] TextCorrectionManager initialized (AI: false)
+[2026-02-03 17:11:48.786] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 17:11:48.789] [INFO] [SettingsViewModel] loadSettings()
+[2026-02-03 17:13:13.370] [INFO] [SettingsViewModel] SettingsViewModel init
+[2026-02-03 17:13:13.371] [INFO] [SettingsViewModel] loadSettings()

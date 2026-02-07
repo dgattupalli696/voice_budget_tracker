@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Quick Add Expense Shortcut -->
+    <shortcut
+        android:shortcutId="add_expense"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_expense"
+        android:shortcutShortLabel="@string/shortcut_add_expense_short"
+        android:shortcutLongLabel="@string/shortcut_add_expense_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.budgettracker"
+            android:targetClass="com.budgettracker.MainActivity"
+            android:data="budgettracker://add_expense" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+    <!-- Voice Input Shortcut -->
+    <shortcut
+        android:shortcutId="voice_input"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_voice"
+        android:shortcutShortLabel="@string/shortcut_voice_short"
+        android:shortcutLongLabel="@string/shortcut_voice_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.budgettracker"
+            android:targetClass="com.budgettracker.MainActivity"
+            android:data="budgettracker://voice_input" />
+        <categories android:name="android.shortcut.conversation" />
+    </shortcut>
+    
+</shortcuts>

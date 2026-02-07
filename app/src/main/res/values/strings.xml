@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Voice Budget Tracker</string>
+    
+    <!-- Shortcuts -->
+    <string name="shortcut_add_expense_short">Add Expense</string>
+    <string name="shortcut_add_expense_long">Quickly add an expense</string>
+    <string name="shortcut_voice_short">Voice Input</string>
+    <string name="shortcut_voice_long">Add expense using voice</string>
+    
+    <!-- Widget -->
+    <string name="widget_description">Quick access to add expenses manually or by voice</string>
+    <string name="widget_name">Add Expense</string>
+</resources>
