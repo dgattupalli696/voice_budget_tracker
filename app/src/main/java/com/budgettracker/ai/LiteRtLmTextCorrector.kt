@@ -33,7 +33,7 @@ import java.io.File
 class LiteRtLmTextCorrector(
     private val context: Context,
     private val modelPath: String? = null,
-    private val backend: Backend = Backend.CPU
+    private val backend: Backend = Backend.CPU()
 ) : TextCorrector {
 
     private var engine: Engine? = null

@@ -17,6 +17,7 @@ import com.budgettracker.ui.screens.addtransaction.AddTransactionScreen
 import com.budgettracker.ui.screens.categories.CategoriesScreen
 import com.budgettracker.ui.screens.chat.ChatScreen
 import com.budgettracker.ui.screens.home.HomeScreen
+import com.budgettracker.ui.screens.pdfimport.ImportScreen
 import com.budgettracker.ui.screens.reports.ReportsScreen
 import com.budgettracker.ui.screens.settings.SettingsScreen
 
@@ -28,6 +29,7 @@ sealed class Screen(val route: String) {
     data object Reports : Screen("reports")
     data object Categories : Screen("categories")
     data object Chat : Screen("chat")
+    data object Import : Screen("import_pdf")
 }
 
 @Composable
@@ -98,7 +100,8 @@ fun BudgetNavigation(shortcutAction: String? = null) {
                         onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
                         onNavigateToReports = { navController.navigate(Screen.Reports.route) },
                         onNavigateToCategories = { navController.navigate(Screen.Categories.route) },
-                        onNavigateToChat = { navController.navigate(Screen.Chat.route) }
+                        onNavigateToChat = { navController.navigate(Screen.Chat.route) },
+                        onNavigateToImport = { navController.navigate(Screen.Import.route) }
                     )
                 }
                 
@@ -162,6 +165,12 @@ fun BudgetNavigation(shortcutAction: String? = null) {
                 
                 composable(Screen.Chat.route) {
                     ChatScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+                
+                composable(Screen.Import.route) {
+                    ImportScreen(
                         onNavigateBack = { navController.popBackStack() }
                     )
                 }

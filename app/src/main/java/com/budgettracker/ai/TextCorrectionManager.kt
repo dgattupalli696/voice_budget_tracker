@@ -27,7 +27,7 @@ class TextCorrectionManager @Inject constructor(
     private val ruleBasedCorrector = RuleBasedTextCorrector()
     private var isInitialized = false
     
-    private var currentBackend: Backend = Backend.CPU
+    private var currentBackend: Backend = Backend.CPU()
     
     private val _lastError = MutableStateFlow<String?>(null)
     val lastError: StateFlow<String?> = _lastError.asStateFlow()

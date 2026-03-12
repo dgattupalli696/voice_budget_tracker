@@ -89,6 +89,12 @@ dependencies {
     // Coroutines for async LLM processing
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     
+    // PDF text extraction
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+    
+    // OCR for scanned PDFs
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
+    
     // Testing
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")

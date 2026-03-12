@@ -51,7 +51,8 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToReports: () -> Unit = {},
     onNavigateToCategories: () -> Unit = {},
-    onNavigateToChat: () -> Unit = {}
+    onNavigateToChat: () -> Unit = {},
+    onNavigateToImport: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -104,6 +105,12 @@ fun HomeScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
                 actions = {
+                    IconButton(onClick = onNavigateToImport) {
+                        Icon(
+                            imageVector = Icons.Default.PictureAsPdf,
+                            contentDescription = "Import PDF"
+                        )
+                    }
                     IconButton(onClick = onNavigateToCategories) {
                         Icon(
                             imageVector = Icons.Default.Category,

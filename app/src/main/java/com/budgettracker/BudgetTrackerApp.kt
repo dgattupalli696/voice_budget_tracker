@@ -3,6 +3,7 @@ package com.budgettracker
 import android.app.Application
 import com.budgettracker.ai.TextCorrectionManager
 import com.budgettracker.utils.FileLogger
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -30,6 +31,9 @@ class BudgetTrackerApp : Application() {
         // Initialize file logger for crash debugging
         FileLogger.init(this)
         FileLogger.i("BudgetTrackerApp", "Application onCreate")
+        
+        // Initialize PdfBox for PDF processing
+        PDFBoxResourceLoader.init(applicationContext)
         
         // Set up global exception handler
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()

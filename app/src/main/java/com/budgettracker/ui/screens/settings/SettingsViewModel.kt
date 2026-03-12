@@ -110,9 +110,9 @@ class SettingsViewModel @Inject constructor(
     fun selectBackend(backend: ModelBackend) {
         _uiState.update { it.copy(selectedBackend = backend) }
         val liteRtBackend = when (backend) {
-            ModelBackend.CPU -> Backend.CPU
-            ModelBackend.GPU -> Backend.GPU
-            ModelBackend.NPU -> Backend.NPU
+            ModelBackend.CPU -> Backend.CPU()
+            ModelBackend.GPU -> Backend.GPU()
+            ModelBackend.NPU -> Backend.NPU()
         }
         textCorrectionManager.setBackend(liteRtBackend)
         
