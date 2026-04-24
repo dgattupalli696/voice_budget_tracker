@@ -82,9 +82,10 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     
     // LiteRT-LM for on-device AI models (.litertlm files)
+    // Pinned: 0.10+ requires Kotlin 2.3.0; project uses 2.1.20.
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.9.0-alpha06")
     // Supports Gemma3-1B, Gemma-3n-E2B, phi-4-mini, qwen2.5-1.5b
     // Note: Does NOT reliably support emulators - use physical device
-    implementation("com.google.ai.edge.litertlm:litertlm-android:latest.release")
     
     // Coroutines for async LLM processing
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
