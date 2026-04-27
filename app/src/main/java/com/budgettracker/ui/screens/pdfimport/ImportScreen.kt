@@ -73,6 +73,13 @@ fun ImportScreen(
                     onSelectPdf = { pdfLauncher.launch(arrayOf("application/pdf")) }
                 )
                 is ImportUiState.Processing -> ProcessingContent(progress = state.progress)
+                is ImportUiState.PasswordRequired -> PasswordContent(
+                    wrongPassword = state.wrongPassword,
+                    onSubmitPassword = { password ->
+                        viewModel.processPdfWithPassword(state.uri, password)
+                    },
+                    onBack = { viewModel.reset() }
+                )
                 is ImportUiState.Review -> ReviewContent(
                     state = state,
                     onToggle = viewModel::toggleTransaction,
@@ -444,6 +451,90 @@ private fun DoneContent(importedCount: Int, skippedCount: Int, onDone: () -> Uni
             shape = RoundedCornerShape(16.dp)
         ) {
             Text("Done", style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+@Composable
+private fun PasswordContent(
+    wrongPassword: Boolean,
+    onSubmitPassword: (String) -> Unit,
+    onBack: () -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Default.Lock,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f)
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "Password Protected PDF",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = if (wrongPassword) "Incorrect password. Please try again."
+                   else "This PDF requires a password to open.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (wrongPassword) MaterialTheme.colorScheme.error
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("PDF Password") },
+            singleLine = true,
+            visualTransformation = if (passwordVisible)
+                androidx.compose.ui.text.input.VisualTransformation.None
+            else
+                androidx.compose.ui.text.input.PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(
+                        if (passwordVisible) Icons.Default.VisibilityOff
+                        else Icons.Default.Visibility,
+                        contentDescription = if (passwordVisible) "Hide" else "Show"
+                    )
+                }
+            },
+            isError = wrongPassword,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = { if (password.isNotBlank()) onSubmitPassword(password) },
+            enabled = password.isNotBlank(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(Icons.Default.LockOpen, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Unlock & Import")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = onBack,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Text("Cancel")
         }
     }
 }

@@ -364,7 +364,8 @@ private fun ModelManagementDialog(
                             val modelFile = java.io.File(externalDir, "models/${model.fileName}")
                             val isDownloaded = modelFile.exists() && modelFile.length() > 0
                             val isSelected = model.id == selectedModelId
-                            val isCurrentlyDownloading = downloadState is ModelDownloadState.Downloading && isSelected
+                            val isCurrentlyDownloading = downloadState is ModelDownloadState.Downloading &&
+                                (downloadState as ModelDownloadState.Downloading).modelId == model.id
                             
                             Card(
                                 modifier = Modifier

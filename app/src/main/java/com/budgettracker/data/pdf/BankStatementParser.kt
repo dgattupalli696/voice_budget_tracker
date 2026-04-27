@@ -65,11 +65,13 @@ class BankStatementParser @Inject constructor() {
         FileLogger.i("BankStatementParser", "Header found at line $headerIndex: $headerLine")
 
         val layout = detectColumnLayout(headerLine)
+        val hasBalanceCol = layout.balanceCol != null
         val transactions = mutableListOf<ImportedTransaction>()
         var currentDescription = ""
         var lastDate: LocalDate? = null
         var lastDebit: Double? = null
         var lastCredit: Double? = null
+        var prevClosingBalance: Double? = findOpeningBalance(lines, headerIndex)
 
         for (i in (headerIndex + 1) until lines.size) {
             val line = lines[i]
@@ -88,6 +90,19 @@ class BankStatementParser @Inject constructor() {
                 val amounts = extractAmounts(line, layout, dateMatch.range)
                 lastDebit = amounts.first
                 lastCredit = amounts.second
+                
+                // Balance-tracking heuristic: when we have a balance column
+                // and exactly one transaction amount + one balance amount,
+                // use balance delta to determine debit vs credit
+                if (hasBalanceCol) {
+                    val resolved = resolveWithBalanceTracking(
+                        lastDebit, lastCredit, amounts.third, prevClosingBalance
+                    )
+                    lastDebit = resolved.first
+                    lastCredit = resolved.second
+                    val closingBal = resolved.third
+                    if (closingBal != null) prevClosingBalance = closingBal
+                }
 
                 // Extract description: text between date and amounts
                 currentDescription = extractDescription(line, dateMatch.range, amounts.third)
@@ -241,6 +256,71 @@ class BankStatementParser @Inject constructor() {
         )
     }
 
+    /**
+     * Look for an opening balance line before the first transaction.
+     * HDFC format: "Opening Balance" or first line balance.
+     */
+    private fun findOpeningBalance(lines: List<String>, headerIndex: Int): Double? {
+        // Search around the header for opening balance
+        val searchRange = maxOf(0, headerIndex - 5)..headerIndex
+        for (i in searchRange) {
+            val lower = lines[i].lowercase()
+            if (lower.contains("opening balance") || lower.contains("b/f") || lower.contains("brought forward")) {
+                val amounts = amountPattern.findAll(lines[i]).map { parseAmount(it.value) }.filter { it > 0 }.toList()
+                if (amounts.isNotEmpty()) return amounts.last()
+            }
+        }
+        return null
+    }
+
+    /**
+     * Use balance tracking to correctly classify debit vs credit.
+     * When a statement has WithdrawalAmt/DepositAmt/ClosingBalance columns but
+     * PDF text extraction collapses whitespace, we can't rely on positions.
+     * Instead: the last amount is the closing balance. Compare with previous
+     * balance to determine if the transaction was a deposit or withdrawal.
+     * 
+     * Returns Triple(debit, credit, closingBalance)
+     */
+    private fun resolveWithBalanceTracking(
+        rawDebit: Double?,
+        rawCredit: Double?,
+        amountRanges: List<IntRange>,
+        prevBalance: Double?
+    ): Triple<Double?, Double?, Double?> {
+        // If we already have a clear debit-only or credit-only, keep it
+        if (rawDebit != null && rawDebit > 0 && rawCredit == null) {
+            return Triple(rawDebit, null, null)
+        }
+        if (rawCredit != null && rawCredit > 0 && rawDebit == null) {
+            return Triple(null, rawCredit, null)
+        }
+        
+        // When both rawDebit and rawCredit are set but one is actually the balance
+        if (rawDebit != null && rawDebit > 0 && rawCredit != null && rawCredit > 0) {
+            val txnAmount = rawDebit
+            val closingBalance = rawCredit  // rightmost = balance
+            
+            if (prevBalance != null) {
+                val delta = closingBalance - prevBalance
+                // Validate: the absolute delta should roughly match the transaction amount
+                if (Math.abs(Math.abs(delta) - txnAmount) < txnAmount * 0.01) {
+                    return if (delta > 0) {
+                        // Balance increased → this was a deposit/credit
+                        Triple(null, txnAmount, closingBalance)
+                    } else {
+                        // Balance decreased → this was a withdrawal/debit
+                        Triple(txnAmount, null, closingBalance)
+                    }
+                }
+            }
+            // Can't determine from balance, fall through to original assignment
+            return Triple(rawDebit, rawCredit, rawCredit)
+        }
+        
+        return Triple(rawDebit, rawCredit, null)
+    }
+
     private fun parseWithoutHeader(lines: List<String>): List<ImportedTransaction> {
         val transactions = mutableListOf<ImportedTransaction>()
         for (line in lines) {
@@ -261,7 +341,17 @@ class BankStatementParser @Inject constructor() {
 
             if (descPart.isBlank()) continue
 
-            val type = TransactionType.EXPENSE
+            // Infer type from text clues
+            val lower = descPart.lowercase()
+            val type = if (lower.contains("cr") || lower.contains("credit") ||
+                lower.contains("deposit") || lower.contains("received") ||
+                lower.contains("salary") || lower.contains("neftcr") ||
+                lower.contains("refund") || lower.contains("cashback") ||
+                lower.contains("interest") || lower.contains("dividend")) {
+                TransactionType.INCOME
+            } else {
+                TransactionType.EXPENSE
+            }
             transactions.add(
                 ImportedTransaction(
                     amount = amount,

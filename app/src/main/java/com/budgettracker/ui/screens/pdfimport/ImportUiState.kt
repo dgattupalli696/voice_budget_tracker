@@ -1,10 +1,12 @@
 package com.budgettracker.ui.screens.pdfimport
 
+import android.net.Uri
 import com.budgettracker.domain.model.ImportedTransaction
 
 sealed class ImportUiState {
     data object Idle : ImportUiState()
     data class Processing(val progress: String = "Reading PDF...") : ImportUiState()
+    data class PasswordRequired(val uri: Uri, val wrongPassword: Boolean = false) : ImportUiState()
     data class Review(
         val transactions: List<ImportedTransaction>,
         val totalCount: Int,

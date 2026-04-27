@@ -29,7 +29,7 @@ class PdfImportManager @Inject constructor(
     private val repository: TransactionRepository
 ) {
 
-    suspend fun processUri(uri: Uri, onProgress: (String) -> Unit = {}): PdfImportResult =
+    suspend fun processUri(uri: Uri, password: String? = null, onProgress: (String) -> Unit = {}): PdfImportResult =
         withContext(Dispatchers.IO) {
             try {
                 onProgress("Reading PDF...")
@@ -42,7 +42,7 @@ class PdfImportManager @Inject constructor(
                 var ocrUsed = false
 
                 inputStream.use { stream ->
-                    pages = pdfTextExtractor.extractText(stream)
+                    pages = pdfTextExtractor.extractText(stream, password)
                 }
 
                 // Step 2: If no meaningful text, fallback to OCR
@@ -52,7 +52,7 @@ class PdfImportManager @Inject constructor(
                     val ocrStream = context.contentResolver.openInputStream(uri)
                         ?: throw IllegalArgumentException("Cannot reopen PDF file")
                     ocrStream.use { stream ->
-                        pages = ocrExtractor.extractText(stream)
+                        pages = ocrExtractor.extractText(stream, password)
                     }
                     ocrUsed = true
                 }

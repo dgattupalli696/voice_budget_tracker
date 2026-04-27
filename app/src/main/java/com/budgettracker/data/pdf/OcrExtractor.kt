@@ -37,15 +37,26 @@ class OcrExtractor @Inject constructor(
         tessDataReady = true
     }
 
-    fun extractText(inputStream: InputStream): List<String> {
+    fun extractText(inputStream: InputStream, password: String? = null): List<String> {
         ensureTessData()
         PDFBoxResourceLoader.init(context)
 
         val pages = mutableListOf<String>()
         val tessDir = File(context.filesDir, "tesseract")
 
-        PDDocument.load(inputStream).use { document ->
-            val renderer = PDFRenderer(document)
+        val document = try {
+            if (password != null) PDDocument.load(inputStream, password)
+            else PDDocument.load(inputStream)
+        } catch (e: Exception) {
+            val msg = e.message?.lowercase() ?: ""
+            if (msg.contains("password") || msg.contains("encrypted") || msg.contains("decrypt")) {
+                if (password != null) throw WrongPasswordException()
+                else throw PasswordRequiredException()
+            }
+            throw e
+        }
+        document.use { doc ->
+            val renderer = PDFRenderer(doc)
             val tess = TessBaseAPI()
             try {
                 if (!tess.init(tessDir.absolutePath, "eng")) {
@@ -54,7 +65,7 @@ class OcrExtractor @Inject constructor(
                 }
                 tess.pageSegMode = TessBaseAPI.PageSegMode.PSM_AUTO
 
-                for (i in 0 until document.numberOfPages) {
+                for (i in 0 until doc.numberOfPages) {
                     try {
                         val bitmap = renderer.renderImageWithDPI(i, 300f)
                         tess.setImage(bitmap)

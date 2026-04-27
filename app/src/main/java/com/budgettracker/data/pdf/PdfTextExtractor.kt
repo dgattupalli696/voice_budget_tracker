@@ -9,6 +9,9 @@ import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 
+class PasswordRequiredException(message: String = "PDF is password protected") : Exception(message)
+class WrongPasswordException(message: String = "Incorrect password") : Exception(message)
+
 @Singleton
 class PdfTextExtractor @Inject constructor(
     @ApplicationContext private val context: Context
@@ -22,15 +25,29 @@ class PdfTextExtractor @Inject constructor(
         }
     }
 
-    fun extractText(inputStream: InputStream): List<String> {
+    fun extractText(inputStream: InputStream, password: String? = null): List<String> {
         ensureInitialized()
         val pages = mutableListOf<String>()
-        PDDocument.load(inputStream).use { document ->
+        val document = try {
+            if (password != null) {
+                PDDocument.load(inputStream, password)
+            } else {
+                PDDocument.load(inputStream)
+            }
+        } catch (e: Exception) {
+            val msg = e.message?.lowercase() ?: ""
+            if (msg.contains("password") || msg.contains("encrypted") || msg.contains("decrypt")) {
+                if (password != null) throw WrongPasswordException()
+                else throw PasswordRequiredException()
+            }
+            throw e
+        }
+        document.use { doc ->
             val stripper = PDFTextStripper()
-            for (i in 1..document.numberOfPages) {
+            for (i in 1..doc.numberOfPages) {
                 stripper.startPage = i
                 stripper.endPage = i
-                val text = stripper.getText(document).trim()
+                val text = stripper.getText(doc).trim()
                 if (text.isNotEmpty()) {
                     pages.add(text)
                 }
@@ -39,18 +56,28 @@ class PdfTextExtractor @Inject constructor(
         return pages
     }
 
-    fun hasTextContent(inputStream: InputStream): Boolean {
+    fun hasTextContent(inputStream: InputStream, password: String? = null): Boolean {
         ensureInitialized()
         return try {
-            PDDocument.load(inputStream).use { document ->
-                if (document.numberOfPages == 0) return false
+            val document = if (password != null) {
+                PDDocument.load(inputStream, password)
+            } else {
+                PDDocument.load(inputStream)
+            }
+            document.use { doc ->
+                if (doc.numberOfPages == 0) return false
                 val stripper = PDFTextStripper()
                 stripper.startPage = 1
                 stripper.endPage = 1
-                val text = stripper.getText(document).trim()
+                val text = stripper.getText(doc).trim()
                 text.length > 50
             }
         } catch (e: Exception) {
+            val msg = e.message?.lowercase() ?: ""
+            if (msg.contains("password") || msg.contains("encrypted") || msg.contains("decrypt")) {
+                if (password != null) throw WrongPasswordException()
+                else throw PasswordRequiredException()
+            }
             false
         }
     }

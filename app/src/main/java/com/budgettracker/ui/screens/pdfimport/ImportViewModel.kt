@@ -3,7 +3,9 @@ package com.budgettracker.ui.screens.pdfimport
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.budgettracker.data.pdf.PasswordRequiredException
 import com.budgettracker.data.pdf.PdfImportManager
+import com.budgettracker.data.pdf.WrongPasswordException
 import com.budgettracker.data.repository.TransactionRepository
 import com.budgettracker.domain.model.ImportedTransaction
 import com.budgettracker.domain.model.Transaction
@@ -25,10 +27,18 @@ class ImportViewModel @Inject constructor(
     val uiState: StateFlow<ImportUiState> = _uiState.asStateFlow()
 
     fun processPdf(uri: Uri) {
+        processPdfInternal(uri, null)
+    }
+    
+    fun processPdfWithPassword(uri: Uri, password: String) {
+        processPdfInternal(uri, password)
+    }
+    
+    private fun processPdfInternal(uri: Uri, password: String?) {
         viewModelScope.launch {
             _uiState.value = ImportUiState.Processing("Reading PDF...")
             try {
-                val result = pdfImportManager.processUri(uri) { progress ->
+                val result = pdfImportManager.processUri(uri, password) { progress ->
                     _uiState.value = ImportUiState.Processing(progress)
                 }
                 _uiState.value = ImportUiState.Review(
@@ -36,6 +46,10 @@ class ImportViewModel @Inject constructor(
                     totalCount = result.totalParsed,
                     duplicateCount = result.duplicateCount
                 )
+            } catch (e: PasswordRequiredException) {
+                _uiState.value = ImportUiState.PasswordRequired(uri, wrongPassword = false)
+            } catch (e: WrongPasswordException) {
+                _uiState.value = ImportUiState.PasswordRequired(uri, wrongPassword = true)
             } catch (e: Exception) {
                 FileLogger.e("ImportViewModel", "PDF processing failed", e)
                 _uiState.value = ImportUiState.Error(

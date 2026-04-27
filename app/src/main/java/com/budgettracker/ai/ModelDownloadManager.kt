@@ -26,7 +26,8 @@ sealed class ModelDownloadState {
         val downloadedMB: Int = 0,
         val totalMB: Int = 0,
         val bytesPerSecond: Long = 0,
-        val remainingSeconds: Long = 0
+        val remainingSeconds: Long = 0,
+        val modelId: String = ""
     ) : ModelDownloadState()
     object Downloaded : ModelDownloadState()
     data class Error(val message: String) : ModelDownloadState()
@@ -329,7 +330,7 @@ class ModelDownloadManager @Inject constructor(
         checkModelStatus()
     }
     
-    fun downloadModel(modelId: String = _selectedModelId.value): Flow<ModelDownloadState> = flow {
+    fun downloadModel(modelId: String): Flow<ModelDownloadState> = flow {
         if (isDownloading) {
             emit(ModelDownloadState.Error("Download already in progress"))
             return@flow
@@ -353,8 +354,8 @@ class ModelDownloadManager @Inject constructor(
             Log.d(TAG, "Target: ${targetFile.absolutePath}")
             
             val totalMB = (modelInfo.sizeBytes / 1_000_000).toInt()
-            emit(ModelDownloadState.Downloading(0, 0, totalMB))
-            _downloadState.value = ModelDownloadState.Downloading(0, 0, totalMB)
+            emit(ModelDownloadState.Downloading(0, 0, totalMB, modelId = modelId))
+            _downloadState.value = ModelDownloadState.Downloading(0, 0, totalMB, modelId = modelId)
             
             val url = URL(modelInfo.url)
             val connection = url.openConnection() as HttpURLConnection
@@ -481,7 +482,7 @@ class ModelDownloadManager @Inject constructor(
                             
                             val state = ModelDownloadState.Downloading(
                                 progress, downloadedMB, totalMBActual,
-                                bytesPerSecond, remainingSeconds
+                                bytesPerSecond, remainingSeconds, modelId = modelId
                             )
                             emit(state)
                             _downloadState.value = state

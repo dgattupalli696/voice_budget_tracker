@@ -133,10 +133,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
     
-    fun downloadAIModel(modelId: String? = null) {
-        val id = modelId ?: _uiState.value.selectedModelId
+    fun downloadAIModel(modelId: String) {
         viewModelScope.launch {
-            modelDownloadManager.downloadModel(id)
+            modelDownloadManager.downloadModel(modelId)
                 .onEach { state ->
                     _uiState.update { it.copy(modelDownloadState = state) }
                     

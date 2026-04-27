@@ -179,8 +179,13 @@ class LiteRtLmTextCorrector(
 
     override suspend fun correctText(text: String): TextCorrectionResult {
         if (!isInitialized || conversation == null) {
-            FileLogger.w(TAG, "correctText called but not initialized")
-            return TextCorrectionResult(text, text, false)
+            FileLogger.w(TAG, "correctText called but not initialized, attempting reload")
+            isInitialized = false
+            val reloaded = initialize()
+            if (!reloaded || conversation == null) {
+                FileLogger.w(TAG, "Reload failed, returning original text")
+                return TextCorrectionResult(text, text, false)
+            }
         }
         
         return withContext(Dispatchers.IO) {
@@ -212,7 +217,9 @@ class LiteRtLmTextCorrector(
                     processingTimeMs = processingTime
                 )
             } catch (e: Exception) {
-                FileLogger.e(TAG, "Error during text correction", e)
+                FileLogger.e(TAG, "Error during text correction, resetting state", e)
+                // Reset so next call will re-initialize
+                try { close() } catch (_: Exception) {}
                 TextCorrectionResult(text, text, false)
             }
         }
@@ -220,7 +227,10 @@ class LiteRtLmTextCorrector(
     
     override suspend fun generateDescription(text: String): String {
         if (!isInitialized || conversation == null) {
-            return extractSimpleDescription(text)
+            // Try to reload
+            isInitialized = false
+            val reloaded = initialize()
+            if (!reloaded || conversation == null) return extractSimpleDescription(text)
         }
         
         return withContext(Dispatchers.IO) {
@@ -236,7 +246,8 @@ class LiteRtLmTextCorrector(
                     extractSimpleDescription(text)
                 }
             } catch (e: Exception) {
-                FileLogger.e(TAG, "Error generating description", e)
+                FileLogger.e(TAG, "Error generating description, resetting state", e)
+                try { close() } catch (_: Exception) {}
                 extractSimpleDescription(text)
             }
         }
@@ -304,7 +315,7 @@ class LiteRtLmTextCorrector(
         }
     }
 
-    override fun isAvailable(): Boolean = isInitialized
+    override fun isAvailable(): Boolean = isInitialized && engine != null && conversation != null
 
     override fun close() {
         FileLogger.i(TAG, "Closing LiteRT-LM resources")
