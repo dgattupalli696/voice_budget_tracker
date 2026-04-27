@@ -33,10 +33,21 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > $GITHUB_WORKSPACE/keystore.p12
+
       - name: Grant execute for gradlew
         run: chmod +x gradlew
 
       - name: Assemble debug APK
+        env:
+          KEYSTORE_PATH: ${{ github.workspace }}/keystore.p12
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
