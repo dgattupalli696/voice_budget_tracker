@@ -1,5 +1,6 @@
 package com.budgettracker.data.repository
 
+import com.budgettracker.data.local.AccountTotalRow
 import com.budgettracker.data.local.TransactionDao
 import com.budgettracker.domain.model.Transaction
 import com.budgettracker.domain.model.TransactionType
@@ -22,6 +23,9 @@ class TransactionRepository @Inject constructor(
 
     fun getTotalExpense(): Flow<Double?> =
         transactionDao.getTotalByType(TransactionType.EXPENSE)
+
+    fun getAccountTotals(): Flow<List<AccountTotalRow>> =
+        transactionDao.getAccountTotals()
 
     suspend fun getTransactionById(id: Long): Transaction? =
         transactionDao.getTransactionById(id)

@@ -142,20 +142,16 @@ class ChatViewModel @Inject constructor(
                 if (isTransactionCommand(message)) {
                     val parsed = transactionParser.parse(message)
                     if (parsed != null) {
-                        val defaultAccountId = preferencesManager.defaultAccountId.takeIf { it > 0 }
-                            ?: accountRepository.getDefaultAccount()?.id
+                        val defaultAccount = resolveDefaultAccount()
                         val pendingTxn = PendingTransaction(
                             amount = parsed.amount,
                             description = parsed.description,
                             category = parsed.category,
                             type = parsed.type,
                             dateTime = parsed.dateTime,
-                            accountId = defaultAccountId
+                            accountId = defaultAccount?.id
                         )
-                        val accountName = defaultAccountId?.let {
-                            accountRepository.getAccountById(it)?.name
-                        }
-                        val confirmMessage = buildTransactionConfirmation(pendingTxn, accountName)
+                        val confirmMessage = buildTransactionConfirmation(pendingTxn, defaultAccount?.name)
                         val aiMessage = ChatMessage(content = confirmMessage, isUser = false)
                         _uiState.update { 
                             it.copy(
@@ -375,17 +371,44 @@ User Question: $userQuery
 Please provide a helpful, concise response based on the budget data above. Include specific numbers and insights where relevant. Keep the response under 200 words."""
     }
     
+    /**
+     * Resolve the default account to stamp on AI-chat transactions. Validates
+     * the persisted preference against the database and falls back to
+     * `AccountRepository.getDefaultAccount()` (and clears stale prefs) so we
+     * never write a non-existent account id onto a transaction.
+     */
+    private suspend fun resolveDefaultAccount(): com.budgettracker.domain.model.Account? {
+        val prefId = preferencesManager.defaultAccountId
+        if (prefId > 0) {
+            val cached = accountRepository.getAccountById(prefId)
+            if (cached != null) return cached
+            // Pref points at an account that no longer exists — reset.
+            preferencesManager.defaultAccountId = -1L
+        }
+        val fallback = accountRepository.getDefaultAccount()
+        if (fallback != null) {
+            preferencesManager.defaultAccountId = fallback.id
+        }
+        return fallback
+    }
+
     fun confirmPendingTransaction() {
-        if (_uiState.value.pendingTransaction == null) return
-        // Echo a synthetic user message for transcript clarity, then commit.
+        val state = _uiState.value
+        if (state.pendingTransaction == null || state.isLoading) return
+        // Mark loading immediately so quick-action buttons disable before the
+        // insert starts; this also prevents double-tap from inserting twice.
         _uiState.update {
-            it.copy(messages = it.messages + ChatMessage(content = "Yes", isUser = true))
+            it.copy(
+                isLoading = true,
+                messages = it.messages + ChatMessage(content = "Yes", isUser = true)
+            )
         }
         confirmTransaction()
     }
 
     fun cancelPendingTransaction() {
-        if (_uiState.value.pendingTransaction == null) return
+        val state = _uiState.value
+        if (state.pendingTransaction == null || state.isLoading) return
         _uiState.update {
             it.copy(messages = it.messages + ChatMessage(content = "No", isUser = true))
         }

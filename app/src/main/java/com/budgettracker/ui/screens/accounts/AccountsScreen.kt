@@ -84,7 +84,9 @@ fun AccountsScreen(
                         AccountRow(
                             item = item,
                             isDefault = item.account.id == uiState.defaultAccountId,
-                            onSetDefault = { viewModel.setDefault(item.account.id) }
+                            onSetDefault = {
+                                if (!item.isUnassigned) viewModel.setDefault(item.account.id)
+                            }
                         )
                     }
                 }
@@ -147,7 +149,10 @@ private fun AccountRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            IconButton(onClick = onSetDefault) {
+            IconButton(
+                onClick = onSetDefault,
+                enabled = !item.isUnassigned
+            ) {
                 Icon(
                     imageVector = if (isDefault) Icons.Filled.Star else Icons.Outlined.StarBorder,
                     contentDescription = if (isDefault) "Default account" else "Set as default",

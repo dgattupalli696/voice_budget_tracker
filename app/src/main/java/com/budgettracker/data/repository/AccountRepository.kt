@@ -27,8 +27,7 @@ class AccountRepository @Inject constructor(
     suspend fun updateAccount(account: Account) = accountDao.updateAccount(account)
 
     suspend fun setDefault(id: Long) {
-        accountDao.clearDefault()
-        accountDao.markDefault(id)
+        accountDao.setDefaultAtomic(id)
     }
 
     suspend fun deleteAccount(account: Account) = accountDao.deleteAccount(account)

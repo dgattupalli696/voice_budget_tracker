@@ -30,11 +30,8 @@ interface AccountDao {
     @Update
     suspend fun updateAccount(account: Account)
 
-    @Query("UPDATE accounts SET isDefault = 0")
-    suspend fun clearDefault()
-
-    @Query("UPDATE accounts SET isDefault = 1 WHERE id = :id")
-    suspend fun markDefault(id: Long)
+    @Query("UPDATE accounts SET isDefault = CASE WHEN id = :id THEN 1 ELSE 0 END")
+    suspend fun setDefaultAtomic(id: Long)
 
     @Delete
     suspend fun deleteAccount(account: Account)
