@@ -64,25 +64,43 @@ class ModelDownloadManager @Inject constructor(
     private var isDownloading = false
     
     // Available models from Hugging Face litert-community
-    // Based on google-ai-edge/gallery model_allowlist.json
+    // Based on google-ai-edge/gallery model_allowlists/1_0_12.json
     val availableModels = listOf(
         AIModelInfo(
+            id = "gemma4_e2b",
+            name = "Gemma 4 E2B (Best Quality)",
+            description = "Latest Gemma 4 with thinking, vision & audio. Requires 8GB+ RAM.",
+            size = "~2.4 GB",
+            sizeBytes = 2_583_085_056L,
+            url = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm",
+            fileName = "gemma-4-E2B-it.litertlm"
+        ),
+        AIModelInfo(
             id = "gemma3_1b",
-            name = "Gemma3 1B IT q4 (Recommended)",
-            description = "Fast and efficient. Best for budget tracking on most devices.",
-            size = "~529 MB",
-            sizeBytes = 554_661_246L,
-            url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task",
-            fileName = "Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task"
+            name = "Gemma3 1B IT (Recommended)",
+            description = "Fast and efficient. Best for budget tracking on most devices. 6GB+ RAM.",
+            size = "~557 MB",
+            sizeBytes = 584_417_280L,
+            url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.litertlm",
+            fileName = "gemma3-1b-it-int4.litertlm"
         ),
         AIModelInfo(
             id = "qwen25_15b",
-            name = "Qwen2.5 1.5B Instruct q8",
-            description = "Good quality, CPU-only. Larger but more accurate.",
+            name = "Qwen2.5 1.5B Instruct",
+            description = "Good quality with 4K context. 6GB+ RAM.",
             size = "~1.5 GB",
-            sizeBytes = 1_625_493_432L,
-            url = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
-            fileName = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
+            sizeBytes = 1_597_931_520L,
+            url = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.litertlm",
+            fileName = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.litertlm"
+        ),
+        AIModelInfo(
+            id = "deepseek_r1_15b",
+            name = "DeepSeek R1 Distill 1.5B",
+            description = "Reasoning-focused model with chain-of-thought. 6GB+ RAM.",
+            size = "~1.7 GB",
+            sizeBytes = 1_833_451_520L,
+            url = "https://huggingface.co/litert-community/DeepSeek-R1-Distill-Qwen-1.5B/resolve/main/DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv4096.litertlm",
+            fileName = "DeepSeek-R1-Distill-Qwen-1.5B_multi-prefill-seq_q8_ekv4096.litertlm"
         )
     )
     

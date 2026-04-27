@@ -61,7 +61,7 @@ class LiteRtLmTextCorrector(
                 val modelFile = if (modelPath != null) {
                     File(modelPath)
                 } else {
-                    File(context.filesDir, "models/model.task")
+                    File(context.filesDir, "models/model.litertlm")
                 }
                 
                 FileLogger.i(TAG, "Model file path: ${modelFile.absolutePath}")
@@ -78,7 +78,7 @@ class LiteRtLmTextCorrector(
                 
                 // Validate file format (basic size check — the Engine will do full validation)
                 if (!validateModelFile(modelFile)) {
-                    initError = "Invalid model file. Use .task files from Hugging Face litert-community"
+                    initError = "Invalid model file. Use .litertlm or .task files from Hugging Face litert-community"
                     return@withContext false
                 }
                 

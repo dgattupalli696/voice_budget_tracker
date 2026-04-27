@@ -469,7 +469,7 @@ private fun ModelManagementDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Supported: .task files (MediaPipe format)",
+                            text = "Supported: .litertlm and .task model files",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -516,7 +516,8 @@ private fun ModelManagementDialog(
                                 )
                                 Text(
                                     text = "Visit one of these model pages and accept the license:\n" +
-                                        "• litert-community/Gemma3-1B-IT (~529MB)\n" +
+                                        "• litert-community/gemma-4-E2B-it-litert-lm (~2.4GB)\n" +
+                                        "• litert-community/Gemma3-1B-IT (~557MB)\n" +
                                         "• litert-community/Qwen2.5-1.5B-Instruct (~1.5GB)",
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -536,8 +537,9 @@ private fun ModelManagementDialog(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Download the .task file from 'Files and versions' tab:\n" +
-                                        "• Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task (~529MB)\n" +
+                                    text = "Download the .litertlm file from 'Files and versions' tab:\n" +
+                                        "• gemma-4-E2B-it.litertlm (~2.4GB) — best quality\n" +
+                                        "• gemma3-1b-it-int4.litertlm (~557MB) — fast\n" +
                                         "• Or use in-app download from 'Available Models'",
                                     style = MaterialTheme.typography.bodySmall
                                 )
@@ -557,7 +559,7 @@ private fun ModelManagementDialog(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Go to 'Load Model' tab and browse to select the downloaded .task file",
+                                    text = "Go to 'Load Model' tab and browse to select the downloaded model file",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -566,7 +568,7 @@ private fun ModelManagementDialog(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         Text(
-                            text = "Recommended: Gemma3-1B-IT q4 .task (~529MB) — fast and efficient for budget tracking",
+                            text = "Recommended: Gemma3-1B-IT (~557MB) for speed, Gemma 4 E2B (~2.4GB) for best quality",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
                             color = Primary
@@ -580,7 +582,7 @@ private fun ModelManagementDialog(
                             )
                         ) {
                             Text(
-                                text = "⚠️ Note: Only MediaPipe-format .task files from litert-community on Hugging Face are supported. Use the in-app download or manually download from the model's 'Files and versions' tab.",
+                                text = "⚠️ Note: Only .litertlm / .task models from litert-community on Hugging Face are supported. Use the in-app download or manually download from the model's 'Files and versions' tab.",
                                 modifier = Modifier.padding(12.dp),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer

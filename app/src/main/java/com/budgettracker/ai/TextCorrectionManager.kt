@@ -17,7 +17,7 @@ import javax.inject.Singleton
  * Manager for text correction using LiteRT-LM model with rule-based fallback.
  * 
  * Priority:
- * 1. LiteRT-LM model (.task files) - if downloaded by user
+ * 1. LiteRT-LM model (.litertlm / .task files) - if downloaded by user
  * 2. Rule-based corrector (always available)
  */
 @Singleton
@@ -181,7 +181,7 @@ class TextCorrectionManager @Inject constructor(
             }
         }
         
-        return "AI model not available. Please download a .task model from Settings > AI Model."
+        return "AI model not available. Please download a model from Settings > AI Model."
     }
     
     /**
@@ -206,7 +206,7 @@ class TextCorrectionManager @Inject constructor(
             }
         }
         
-        onToken("AI model not available. Please download a .task model from Settings > AI Model.")
+        onToken("AI model not available. Please download a model from Settings > AI Model.")
         onComplete()
     }
 

@@ -23,7 +23,7 @@ object DatabaseModule {
             BudgetDatabase::class.java,
             BudgetDatabase.DATABASE_NAME
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
     }
 
