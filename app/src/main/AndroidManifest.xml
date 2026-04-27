@@ -8,7 +8,7 @@
 
     <application
         android:name=".BudgetTrackerApp"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -43,22 +43,14 @@
         <activity-alias
             android:name=".AddExpenseShortcut"
             android:targetActivity=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
+            android:exported="false">
         </activity-alias>
         
         <!-- Activity for Voice Input Shortcut -->
         <activity-alias
             android:name=".VoiceInputShortcut"
             android:targetActivity=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
+            android:exported="false">
         </activity-alias>
         
         <!-- Home Screen Widget -->

@@ -14,6 +14,8 @@ import com.google.ai.edge.litertlm.SamplerConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
@@ -40,6 +42,7 @@ class LiteRtLmTextCorrector(
     private var conversation: Conversation? = null
     private var isInitialized = false
     private var initError: String? = null
+    private val initMutex = Mutex()
     
     fun getInitializationError(): String? = initError
 
@@ -47,7 +50,9 @@ class LiteRtLmTextCorrector(
         FileLogger.i(TAG, "initialize() called, modelPath=$modelPath")
         initError = null
         
-        return withContext(Dispatchers.IO) {
+        return initMutex.withLock {
+            if (isInitialized) return@withLock true
+            withContext(Dispatchers.IO) {
             try {
                 // Log device info
                 FileLogger.i(TAG, "Device: ${Build.MANUFACTURER} ${Build.MODEL}")
@@ -92,11 +97,11 @@ class LiteRtLmTextCorrector(
                 
                 // Create engine
                 FileLogger.i(TAG, "Creating Engine...")
-                engine = Engine(engineConfig)
+                val newEngine = Engine(engineConfig)
                 
                 // Initialize engine (this can take 10+ seconds)
                 FileLogger.i(TAG, "Initializing Engine (this may take 10-30 seconds)...")
-                engine!!.initialize()
+                newEngine.initialize()
                 FileLogger.i(TAG, "Engine initialized successfully!")
                 
                 // Create conversation
@@ -113,7 +118,8 @@ class LiteRtLmTextCorrector(
                         temperature = 0.7
                     )
                 )
-                conversation = engine!!.createConversation(conversationConfig)
+                conversation = newEngine.createConversation(conversationConfig)
+                engine = newEngine
                 
                 isInitialized = true
                 FileLogger.i(TAG, "LiteRT-LM initialization complete!")
@@ -121,21 +127,18 @@ class LiteRtLmTextCorrector(
             } catch (e: Exception) {
                 FileLogger.e(TAG, "Failed to initialize LiteRT-LM", e)
                 initError = e.message ?: "Unknown initialization error"
+                // Clean up partially initialized engine
+                try { engine?.close() } catch (_: Exception) {}
+                engine = null
+                conversation = null
                 isInitialized = false
                 false
             }
         }
-    }
+        }
     
     private fun validateLiteRtLmFile(file: File): Boolean {
         return try {
-            // Check file extension first
-            val fileName = file.name.lowercase()
-            if (fileName.endsWith(".task")) {
-                FileLogger.i(TAG, "Valid .task file detected by extension")
-                return true
-            }
-            
             file.inputStream().use { stream ->
                 val header = ByteArray(8)
                 val bytesRead = stream.read(header)
@@ -144,20 +147,17 @@ class LiteRtLmTextCorrector(
                     return false
                 }
                 
-                // Check for LITERTLM magic header
+                // Check for LITERTLM magic header — only valid format
                 val magic = String(header, Charsets.US_ASCII)
                 FileLogger.i(TAG, "File header: $magic")
                 
                 if (magic.startsWith("LITERTLM")) {
                     FileLogger.i(TAG, "Valid .litertlm file detected")
                     true
-                } else if (header[4] == 0x50.toByte() && header[5] == 0x4B.toByte()) {
-                    // PK header at offset 4 indicates a .task file (ZIP-based)
-                    FileLogger.i(TAG, "Valid .task file detected (ZIP format)")
-                    true
                 } else {
-                    FileLogger.w(TAG, "Unknown file format, attempting to load anyway")
-                    true // Let LiteRT-LM try to load it
+                    // Reject .task (ZIP/PK) and all other formats — they cause native crashes
+                    FileLogger.e(TAG, "Invalid model format (header: $magic). Only .litertlm files are supported.")
+                    false
                 }
             }
         } catch (e: Exception) {
@@ -174,12 +174,13 @@ class LiteRtLmTextCorrector(
         
         return withContext(Dispatchers.IO) {
             try {
+                val conv = conversation ?: return@withContext TextCorrectionResult(text, text, false)
                 val startTime = System.currentTimeMillis()
                 val prompt = "Correct any errors in this budget entry: \"$text\". " +
                     "Return only the corrected text, nothing else."
                 
                 FileLogger.i(TAG, "Sending prompt to model...")
-                val response = conversation!!.sendMessage(prompt)
+                val response = conv.sendMessage(prompt)
                 val correctedText = response.toString().trim()
                 val processingTime = System.currentTimeMillis() - startTime
                 
@@ -213,8 +214,9 @@ class LiteRtLmTextCorrector(
         
         return withContext(Dispatchers.IO) {
             try {
+                val conv = conversation ?: return@withContext extractSimpleDescription(text)
                 val prompt = "Generate a short description (2-4 words) for this expense: \"$text\". Return only the description."
-                val response = conversation!!.sendMessage(prompt)
+                val response = conv.sendMessage(prompt)
                 val description = response.toString().trim()
                 
                 if (description.isNotBlank() && description.length < 50) {
@@ -244,14 +246,15 @@ class LiteRtLmTextCorrector(
      * Chat with the model for testing purposes.
      */
     suspend fun chat(message: String): String {
-        if (!isInitialized || conversation == null) {
+        if (!isInitialized) {
             throw IllegalStateException("Model not initialized")
         }
         
         return withContext(Dispatchers.IO) {
             try {
+                val conv = conversation ?: throw IllegalStateException("Conversation not available")
                 FileLogger.i(TAG, "Chat message: $message")
-                val response = conversation!!.sendMessage(message)
+                val response = conv.sendMessage(message)
                 val responseText = response.toString()
                 FileLogger.i(TAG, "Chat response: $responseText")
                 responseText
@@ -266,14 +269,15 @@ class LiteRtLmTextCorrector(
      * Stream chat response for real-time output.
      */
     suspend fun chatStream(message: String, onToken: (String) -> Unit, onComplete: () -> Unit) {
-        if (!isInitialized || conversation == null) {
+        if (!isInitialized) {
             throw IllegalStateException("Model not initialized")
         }
         
         withContext(Dispatchers.IO) {
             try {
+                val conv = conversation ?: throw IllegalStateException("Conversation not available")
                 FileLogger.i(TAG, "Chat stream: $message")
-                conversation!!.sendMessageAsync(message)
+                conv.sendMessageAsync(message)
                     .catch { e -> 
                         FileLogger.e(TAG, "Stream error", e)
                         throw e

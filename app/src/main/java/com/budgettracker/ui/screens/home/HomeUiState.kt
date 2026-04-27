@@ -7,5 +7,6 @@ data class HomeUiState(
     val totalIncome: Double = 0.0,
     val totalExpense: Double = 0.0,
     val balance: Double = 0.0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
 )

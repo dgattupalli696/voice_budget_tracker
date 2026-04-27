@@ -288,7 +288,7 @@ RESPOND ONLY WITH THE 6 FIELDS ABOVE."""
         // Check for "X days ago"
         Regex("""(\d+)\s*days?\s*ago""").find(text)?.let { match ->
             val days = match.groupValues[1].toLongOrNull() ?: 0
-            if (days > 0) return today.minusDays(days)
+            if (days in 1..365) return today.minusDays(days)
         }
         
         // Check for "last week"
@@ -299,7 +299,7 @@ RESPOND ONLY WITH THE 6 FIELDS ABOVE."""
         // Check for "X weeks ago"
         Regex("""(\d+)\s*weeks?\s*ago""").find(text)?.let { match ->
             val weeks = match.groupValues[1].toLongOrNull() ?: 0
-            if (weeks > 0) return today.minusWeeks(weeks)
+            if (weeks in 1..52) return today.minusWeeks(weeks)
         }
         
         // Check for "last month"

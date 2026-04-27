@@ -8,7 +8,7 @@ import com.budgettracker.domain.model.Transaction
 @Database(
     entities = [Transaction::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class BudgetDatabase : RoomDatabase() {

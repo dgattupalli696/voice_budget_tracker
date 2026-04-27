@@ -8,6 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -41,7 +42,14 @@ class HomeViewModel @Inject constructor(
                     balance = income - expense,
                     isLoading = false
                 )
-            }.collect { state ->
+            }
+            .catch { e ->
+                _uiState.value = HomeUiState(
+                    isLoading = false,
+                    errorMessage = e.message ?: "Failed to load data"
+                )
+            }
+            .collect { state ->
                 _uiState.value = state
             }
         }

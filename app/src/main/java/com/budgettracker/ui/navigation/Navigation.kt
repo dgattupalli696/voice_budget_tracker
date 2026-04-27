@@ -83,7 +83,7 @@ fun BudgetNavigation(shortcutAction: String? = null) {
         Box(modifier = Modifier.padding(paddingValues)) {
             NavHost(
                 navController = navController,
-                startDestination = Screen.Chat.route
+                startDestination = Screen.Home.route
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(

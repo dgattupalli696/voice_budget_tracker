@@ -8,6 +8,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +28,7 @@ class TextCorrectionManager @Inject constructor(
     private var liteRtLmCorrector: LiteRtLmTextCorrector? = null
     private val ruleBasedCorrector = RuleBasedTextCorrector()
     private var isInitialized = false
+    private val initMutex = Mutex()
     
     private var currentBackend: Backend = Backend.CPU()
     
@@ -49,10 +52,11 @@ class TextCorrectionManager @Inject constructor(
     suspend fun initialize() {
         FileLogger.i(TAG, "initialize() called, isInitialized=$isInitialized")
         
-        if (isInitialized) {
-            FileLogger.i(TAG, "Already initialized, skipping")
-            return
-        }
+        initMutex.withLock {
+            if (isInitialized) {
+                FileLogger.i(TAG, "Already initialized, skipping")
+                return
+            }
         
         _isLoading.value = true
         _isModelReady.value = false
@@ -100,6 +104,7 @@ class TextCorrectionManager @Inject constructor(
         isInitialized = true
         _isLoading.value = false
         FileLogger.i(TAG, "TextCorrectionManager initialized (AI: ${liteRtLmCorrector != null})")
+        }
     }
     
     /**

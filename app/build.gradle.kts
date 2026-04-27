@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.budgettracker"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.budgettracker"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -41,6 +41,10 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    // Room schema export for migration support
+    ksp {
+        arg("room.schemaLocation", "$projectDir/schemas")
     }
     // composeOptions no longer needed with Kotlin 2.0+ compose plugin
     packaging {

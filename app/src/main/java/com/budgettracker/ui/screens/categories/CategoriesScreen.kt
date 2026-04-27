@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.budgettracker.domain.model.TransactionCategory
 import com.budgettracker.domain.model.Transaction
 import com.budgettracker.domain.model.TransactionType
@@ -29,7 +30,7 @@ fun CategoriesScreen(
     onNavigateBack: () -> Unit,
     viewModel: CategoriesViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {

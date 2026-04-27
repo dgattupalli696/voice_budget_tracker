@@ -72,7 +72,7 @@ object FileLogger {
         try {
             val timestamp = dateFormat.format(Date())
             val logLine = "[$timestamp] [$level] [$tag] $message\n"
-            logFile?.appendText(logLine)
+            logFile?.appendText(logLine, Charsets.UTF_8)
         } catch (e: Exception) {
             Log.e(TAG, "Failed to write log", e)
         }
@@ -82,7 +82,18 @@ object FileLogger {
     
     fun getLogContent(): String {
         return try {
-            logFile?.readText() ?: "Log file not found"
+            val file = logFile ?: return "Log file not found"
+            if (!file.exists()) return "Log file not found"
+            // Read with size limit to avoid OOM
+            val maxSize = 512 * 1024L // 512 KB
+            if (file.length() > maxSize) {
+                file.inputStream().use { stream ->
+                    stream.skip(file.length() - maxSize)
+                    stream.bufferedReader().readText()
+                }
+            } else {
+                file.readText()
+            }
         } catch (e: Exception) {
             "Error reading log: ${e.message}"
         }

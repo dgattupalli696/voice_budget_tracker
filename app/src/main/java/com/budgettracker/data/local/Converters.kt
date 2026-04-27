@@ -26,7 +26,11 @@ class Converters {
 
     @TypeConverter
     fun toTransactionType(typeName: String): TransactionType {
-        return TransactionType.valueOf(typeName)
+        return try {
+            TransactionType.valueOf(typeName)
+        } catch (e: IllegalArgumentException) {
+            TransactionType.EXPENSE
+        }
     }
 
     @TypeConverter
@@ -36,6 +40,10 @@ class Converters {
 
     @TypeConverter
     fun toTransactionCategory(categoryName: String): TransactionCategory {
-        return TransactionCategory.valueOf(categoryName)
+        return try {
+            TransactionCategory.valueOf(categoryName)
+        } catch (e: IllegalArgumentException) {
+            TransactionCategory.OTHER_EXPENSE
+        }
     }
 }

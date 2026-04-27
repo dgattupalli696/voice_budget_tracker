@@ -4,7 +4,7 @@ import com.budgettracker.domain.model.ImportedTransaction
 import com.budgettracker.domain.model.Transaction
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.math.roundToLong
+import kotlin.math.abs
 
 @Singleton
 class TransactionDeduplicator @Inject constructor() {
@@ -35,12 +35,11 @@ class TransactionDeduplicator @Inject constructor() {
 
     private fun findDuplicate(imported: ImportedTransaction, existing: List<Transaction>): Transaction? {
         val importedDate = imported.dateTime.toLocalDate()
-        val importedAmountRounded = imported.amount.roundToLong()
         val importedWords = extractWords(imported.description)
 
         return existing.firstOrNull { existing ->
             val sameDay = existing.dateTime.toLocalDate() == importedDate
-            val sameAmount = existing.amount.roundToLong() == importedAmountRounded
+            val sameAmount = abs(existing.amount - imported.amount) < 0.01
             val wordOverlap = calculateWordOverlap(importedWords, extractWords(existing.description))
 
             sameDay && sameAmount && wordOverlap >= 0.5

@@ -12,7 +12,8 @@ data class ReportsUiState(
     val categoryBreakdown: List<CategorySummary> = emptyList(),
     val periodLabel: String = "",
     val canGoNext: Boolean = false,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
 )
 
 enum class ReportPeriod(val displayName: String) {

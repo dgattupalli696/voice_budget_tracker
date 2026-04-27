@@ -81,6 +81,11 @@ class RuleBasedTextCorrector : TextCorrector {
         "bougt" to "bought"
     )
     
+    // Pre-compiled regex patterns for corrections
+    private val correctionPatterns: List<Pair<Regex, String>> = corrections.map { (wrong, correct) ->
+        Regex("\\b${Regex.escape(wrong)}\\b", RegexOption.IGNORE_CASE) to correct
+    }
+    
     // Number words to digits
     private val numberWords = mapOf(
         "zero" to 0,
@@ -126,9 +131,9 @@ class RuleBasedTextCorrector : TextCorrector {
         val startTime = System.currentTimeMillis()
         var result = text.lowercase()
         
-        // Apply spelling corrections
-        corrections.forEach { (wrong, correct) ->
-            result = result.replace(Regex("\\b$wrong\\b", RegexOption.IGNORE_CASE), correct)
+        // Apply spelling corrections using pre-compiled patterns
+        correctionPatterns.forEach { (pattern, correct) ->
+            result = pattern.replace(result, correct)
         }
         
         // Convert number words to digits
