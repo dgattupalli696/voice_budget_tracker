@@ -141,6 +141,36 @@ fun ChatScreen(
         },
         bottomBar = {
             Column {
+                // Yes/No quick action buttons when there is a pending transaction
+                if (uiState.pendingTransaction != null) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.surface,
+                        shadowElevation = 4.dp
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Button(
+                                onClick = { viewModel.confirmPendingTransaction() },
+                                modifier = Modifier.weight(1f),
+                                enabled = !uiState.isLoading
+                            ) {
+                                Text("✓ Yes, add it")
+                            }
+                            OutlinedButton(
+                                onClick = { viewModel.cancelPendingTransaction() },
+                                modifier = Modifier.weight(1f),
+                                enabled = !uiState.isLoading
+                            ) {
+                                Text("✕ No")
+                            }
+                        }
+                    }
+                }
+
                 // Voice status indicator
                 if (isListening || recognitionState is VoiceRecognitionState.Error) {
                     Surface(

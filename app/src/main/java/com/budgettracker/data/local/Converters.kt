@@ -1,6 +1,7 @@
 package com.budgettracker.data.local
 
 import androidx.room.TypeConverter
+import com.budgettracker.domain.model.AccountType
 import com.budgettracker.domain.model.TransactionCategory
 import com.budgettracker.domain.model.TransactionType
 import java.time.LocalDateTime
@@ -45,5 +46,15 @@ class Converters {
         } catch (e: IllegalArgumentException) {
             TransactionCategory.OTHER_EXPENSE
         }
+    }
+
+    @TypeConverter
+    fun fromAccountType(type: AccountType): String = type.name
+
+    @TypeConverter
+    fun toAccountType(name: String): AccountType = try {
+        AccountType.valueOf(name)
+    } catch (e: IllegalArgumentException) {
+        AccountType.BANK
     }
 }

@@ -19,6 +19,9 @@ interface TransactionDao {
     @Query("SELECT SUM(amount) FROM transactions WHERE type = :type")
     fun getTotalByType(type: TransactionType): Flow<Double?>
 
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE accountId = :accountId AND type = :type")
+    suspend fun getTotalForAccount(accountId: Long, type: TransactionType): Double
+
     @Query("SELECT * FROM transactions WHERE dateTime >= :startDate AND dateTime <= :endDate ORDER BY dateTime DESC")
     fun getTransactionsInRange(startDate: String, endDate: String): Flow<List<Transaction>>
 

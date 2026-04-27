@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.budgettracker.ui.screens.accounts.AccountsScreen
 import com.budgettracker.ui.screens.addtransaction.AddTransactionScreen
 import com.budgettracker.ui.screens.categories.CategoriesScreen
 import com.budgettracker.ui.screens.chat.ChatScreen
@@ -20,6 +21,7 @@ import com.budgettracker.ui.screens.home.HomeScreen
 import com.budgettracker.ui.screens.pdfimport.ImportScreen
 import com.budgettracker.ui.screens.reports.ReportsScreen
 import com.budgettracker.ui.screens.settings.SettingsScreen
+import com.budgettracker.ui.screens.setup.SetupScreen
 
 sealed class Screen(val route: String) {
     data object Home : Screen("home")
@@ -30,10 +32,15 @@ sealed class Screen(val route: String) {
     data object Categories : Screen("categories")
     data object Chat : Screen("chat")
     data object Import : Screen("import_pdf")
+    data object Accounts : Screen("accounts")
+    data object Setup : Screen("setup")
 }
 
 @Composable
-fun BudgetNavigation(shortcutAction: String? = null) {
+fun BudgetNavigation(
+    shortcutAction: String? = null,
+    needsSetup: Boolean = false
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -50,6 +57,7 @@ fun BudgetNavigation(shortcutAction: String? = null) {
     val showBottomBar = currentRoute in listOf(
         Screen.Home.route,
         Screen.Reports.route,
+        Screen.Accounts.route,
         Screen.Chat.route,
         Screen.Settings.route
     )
@@ -68,6 +76,9 @@ fun BudgetNavigation(shortcutAction: String? = null) {
                                 popUpTo(Screen.Home.route)
                             }
                             BottomNavItem.Add -> navController.navigate(Screen.AddTransaction.route)
+                            BottomNavItem.Accounts -> navController.navigate(Screen.Accounts.route) {
+                                popUpTo(Screen.Home.route)
+                            }
                             BottomNavItem.Chat -> navController.navigate(Screen.Chat.route) {
                                 popUpTo(Screen.Home.route)
                             }
@@ -83,8 +94,22 @@ fun BudgetNavigation(shortcutAction: String? = null) {
         Box(modifier = Modifier.padding(paddingValues)) {
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route
+                startDestination = if (needsSetup) Screen.Setup.route else Screen.Home.route
             ) {
+                composable(Screen.Setup.route) {
+                    SetupScreen(
+                        onSetupComplete = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Setup.route) { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+                composable(Screen.Accounts.route) {
+                    AccountsScreen()
+                }
+
                 composable(Screen.Home.route) {
                     HomeScreen(
                         onAddTransaction = { text -> 

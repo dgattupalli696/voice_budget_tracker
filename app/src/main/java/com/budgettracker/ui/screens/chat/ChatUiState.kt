@@ -16,7 +16,8 @@ data class PendingTransaction(
     val description: String,
     val category: TransactionCategory,
     val type: TransactionType,
-    val dateTime: LocalDateTime = LocalDateTime.now()
+    val dateTime: LocalDateTime = LocalDateTime.now(),
+    val accountId: Long? = null
 )
 
 data class ChatUiState(
