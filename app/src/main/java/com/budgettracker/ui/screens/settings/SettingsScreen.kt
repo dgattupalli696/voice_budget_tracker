@@ -469,7 +469,7 @@ private fun ModelManagementDialog(
                         Spacer(modifier = Modifier.height(8.dp))
                         
                         Text(
-                            text = "Supported: .litertlm, .task files",
+                            text = "Supported: .task files (MediaPipe format)",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -515,9 +515,9 @@ private fun ModelManagementDialog(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Visit one of these model pages and accept the Gemma license:\n" +
-                                        "• litert-community/Gemma3-1B-IT (~557MB)\n" +
-                                        "• google/gemma-3n-E2B-it-litert-lm (~3GB)",
+                                    text = "Visit one of these model pages and accept the license:\n" +
+                                        "• litert-community/Gemma3-1B-IT (~529MB)\n" +
+                                        "• litert-community/Qwen2.5-1.5B-Instruct (~1.5GB)",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -536,9 +536,9 @@ private fun ModelManagementDialog(
                                     fontWeight = FontWeight.Medium
                                 )
                                 Text(
-                                    text = "Download .litertlm or .task file:\n" +
-                                        "• gemma3-1b-it-int4.litertlm (~557MB)\n" +
-                                        "• Or any compatible .task file",
+                                    text = "Download the .task file from 'Files and versions' tab:\n" +
+                                        "• Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task (~529MB)\n" +
+                                        "• Or use in-app download from 'Available Models'",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -566,7 +566,7 @@ private fun ModelManagementDialog(
                         Spacer(modifier = Modifier.height(16.dp))
                         
                         Text(
-                            text = "Recommended: Gemma3-1B-IT dynamic_int4_qat.task (~529MB) - fast and efficient",
+                            text = "Recommended: Gemma3-1B-IT q4 .task (~529MB) — fast and efficient for budget tracking",
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium,
                             color = Primary
@@ -580,7 +580,7 @@ private fun ModelManagementDialog(
                             )
                         ) {
                             Text(
-                                text = "⚠️ Note: Only MediaPipe-format .task files work. Qwen and other models may not be compatible unless converted to MediaPipe format.",
+                                text = "⚠️ Note: Only MediaPipe-format .task files from litert-community on Hugging Face are supported. Use the in-app download or manually download from the model's 'Files and versions' tab.",
                                 modifier = Modifier.padding(12.dp),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onErrorContainer

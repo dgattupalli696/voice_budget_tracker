@@ -49,7 +49,7 @@ class ModelDownloadManager @Inject constructor(
     private val _downloadState = MutableStateFlow<ModelDownloadState>(ModelDownloadState.NotDownloaded)
     val downloadState: StateFlow<ModelDownloadState> = _downloadState.asStateFlow()
     
-    private val _selectedModelId = MutableStateFlow("gemma_2b_gpu")
+    private val _selectedModelId = MutableStateFlow("gemma3_1b")
     val selectedModelId: StateFlow<String> = _selectedModelId.asStateFlow()
     
     private val _customModelPath = MutableStateFlow<String?>(null)
@@ -63,35 +63,26 @@ class ModelDownloadManager @Inject constructor(
     @Volatile
     private var isDownloading = false
     
-    // Available models - User needs to download these manually from Hugging Face
-    // as they require authentication/license agreement
+    // Available models from Hugging Face litert-community
+    // Based on google-ai-edge/gallery model_allowlist.json
     val availableModels = listOf(
         AIModelInfo(
             id = "gemma3_1b",
-            name = "Gemma 3 1B (Recommended)",
-            description = "Smaller, faster model. Download from Hugging Face.",
-            size = "~530 MB",
-            sizeBytes = 530_000_000L,
-            url = "https://huggingface.co/litert-community/Gemma3-1B-IT",
-            fileName = "gemma3_1b.task"
+            name = "Gemma3 1B IT q4 (Recommended)",
+            description = "Fast and efficient. Best for budget tracking on most devices.",
+            size = "~529 MB",
+            sizeBytes = 554_661_246L,
+            url = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task",
+            fileName = "Gemma3-1B-IT_multi-prefill-seq_q4_ekv2048.task"
         ),
         AIModelInfo(
-            id = "gemma2_2b",
-            name = "Gemma 2 2B",
-            description = "Larger model with better quality. Download from Hugging Face.",
-            size = "~2.7 GB",
-            sizeBytes = 2_700_000_000L,
-            url = "https://huggingface.co/litert-community/Gemma2-2B-IT",
-            fileName = "gemma2_2b.task"
-        ),
-        AIModelInfo(
-            id = "phi2",
-            name = "Phi-2",
-            description = "Microsoft's small language model. Download from Hugging Face.",
-            size = "~1.4 GB",
-            sizeBytes = 1_400_000_000L,
-            url = "https://huggingface.co/litert-community/Phi-2",
-            fileName = "phi2.task"
+            id = "qwen25_15b",
+            name = "Qwen2.5 1.5B Instruct q8",
+            description = "Good quality, CPU-only. Larger but more accurate.",
+            size = "~1.5 GB",
+            sizeBytes = 1_625_493_432L,
+            url = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+            fileName = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
         )
     )
     

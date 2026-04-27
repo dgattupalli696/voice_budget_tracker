@@ -20,14 +20,12 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Text corrector using LiteRT-LM with .litertlm models.
+ * Text corrector using LiteRT-LM with .task models (MediaPipe format).
  * Runs entirely on-device for privacy and offline capability.
  * 
- * Supports:
- * - Gemma3-1B (~557 MB)
- * - Gemma-3n-E2B (~2.9 GB)
- * - phi-4-mini (~3.7 GB)
- * - qwen2.5-1.5b (~1.5 GB)
+ * Compatible models (from litert-community on Hugging Face):
+ * - Gemma3-1B-IT q4 (~529 MB) — recommended
+ * - Qwen2.5-1.5B-Instruct q8 (~1.5 GB)
  * 
  * NOTE: Does NOT reliably support emulators.
  * Use a physical device (Samsung S24/S25, Pixel 8+ recommended).
@@ -63,7 +61,7 @@ class LiteRtLmTextCorrector(
                 val modelFile = if (modelPath != null) {
                     File(modelPath)
                 } else {
-                    File(context.filesDir, "models/model.litertlm")
+                    File(context.filesDir, "models/model.task")
                 }
                 
                 FileLogger.i(TAG, "Model file path: ${modelFile.absolutePath}")
@@ -78,9 +76,9 @@ class LiteRtLmTextCorrector(
                 val fileSizeMB = modelFile.length() / 1024 / 1024
                 FileLogger.i(TAG, "Model file size: ${modelFile.length()} bytes ($fileSizeMB MB)")
                 
-                // Validate file header
-                if (!validateLiteRtLmFile(modelFile)) {
-                    initError = "Invalid model format. Use .litertlm files from Hugging Face litert-community"
+                // Validate file format (basic size check — the Engine will do full validation)
+                if (!validateModelFile(modelFile)) {
+                    initError = "Invalid model file. Use .task files from Hugging Face litert-community"
                     return@withContext false
                 }
                 
@@ -138,27 +136,35 @@ class LiteRtLmTextCorrector(
         }
     }
     
-    private fun validateLiteRtLmFile(file: File): Boolean {
+    private fun validateModelFile(file: File): Boolean {
         return try {
+            // Basic validation: file must be at least 1MB to be a real model
+            if (file.length() < 1_000_000) {
+                FileLogger.e(TAG, "File too small to be a valid model: ${file.length()} bytes")
+                return false
+            }
             file.inputStream().use { stream ->
-                val header = ByteArray(8)
+                val header = ByteArray(4)
                 val bytesRead = stream.read(header)
-                if (bytesRead < 8) {
-                    FileLogger.e(TAG, "File too small to be a valid model")
+                if (bytesRead < 4) {
+                    FileLogger.e(TAG, "Could not read file header")
                     return false
                 }
-                
-                // Check for LITERTLM magic header — only valid format
                 val magic = String(header, Charsets.US_ASCII)
                 FileLogger.i(TAG, "File header: $magic")
-                
-                if (magic.startsWith("LITERTLM")) {
-                    FileLogger.i(TAG, "Valid .litertlm file detected")
-                    true
-                } else {
-                    // Reject .task (ZIP/PK) and all other formats — they cause native crashes
-                    FileLogger.e(TAG, "Invalid model format (header: $magic). Only .litertlm files are supported.")
-                    false
+
+                // Accept .task files (ZIP format, PK header) — this is the standard LiteRT-LM format
+                // Also accept flatbuffer-based formats used by some models
+                when {
+                    magic.startsWith("PK") -> {
+                        FileLogger.i(TAG, "Valid .task file detected (ZIP/MediaPipe format)")
+                        true
+                    }
+                    else -> {
+                        // Let the Engine try to load it — it will throw a catchable exception if invalid
+                        FileLogger.w(TAG, "Unknown header format ($magic), will attempt to load anyway")
+                        true
+                    }
                 }
             }
         } catch (e: Exception) {
