@@ -40,7 +40,14 @@ sealed class BottomNavItem(
         selectedIcon = Icons.Filled.AddCircle,
         unselectedIcon = Icons.Outlined.AddCircle
     )
-    
+
+    data object Accounts : BottomNavItem(
+        route = "accounts",
+        title = "Accounts",
+        selectedIcon = Icons.Filled.AccountBalance,
+        unselectedIcon = Icons.Outlined.AccountBalance
+    )
+
     data object Chat : BottomNavItem(
         route = "chat",
         title = "AI Chat",
@@ -60,6 +67,7 @@ val bottomNavItems = listOf(
     BottomNavItem.Home,
     BottomNavItem.Reports,
     BottomNavItem.Add,
+    BottomNavItem.Accounts,
     BottomNavItem.Chat,
     BottomNavItem.Settings
 )

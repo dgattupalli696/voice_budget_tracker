@@ -2,6 +2,7 @@ package com.budgettracker.di
 
 import android.content.Context
 import androidx.room.Room
+import com.budgettracker.data.local.AccountDao
 import com.budgettracker.data.local.BudgetDatabase
 import com.budgettracker.data.local.TransactionDao
 import dagger.Module
@@ -31,5 +32,11 @@ object DatabaseModule {
     @Singleton
     fun provideTransactionDao(database: BudgetDatabase): TransactionDao {
         return database.transactionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountDao(database: BudgetDatabase): AccountDao {
+        return database.accountDao()
     }
 }

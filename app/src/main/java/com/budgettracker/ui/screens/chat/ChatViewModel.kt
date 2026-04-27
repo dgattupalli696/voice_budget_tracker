@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.budgettracker.ai.BudgetAnalyzer
 import com.budgettracker.ai.TextCorrectionManager
 import com.budgettracker.ai.TransactionParser
+import com.budgettracker.data.local.PreferencesManager
+import com.budgettracker.data.repository.AccountRepository
 import com.budgettracker.data.repository.TransactionRepository
 import com.budgettracker.domain.model.Transaction
 import com.budgettracker.domain.model.TransactionType
@@ -24,7 +26,9 @@ class ChatViewModel @Inject constructor(
     private val textCorrectionManager: TextCorrectionManager,
     private val budgetAnalyzer: BudgetAnalyzer,
     private val transactionRepository: TransactionRepository,
-    private val transactionParser: TransactionParser
+    private val transactionParser: TransactionParser,
+    private val accountRepository: AccountRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
     
     companion object {
@@ -138,14 +142,16 @@ class ChatViewModel @Inject constructor(
                 if (isTransactionCommand(message)) {
                     val parsed = transactionParser.parse(message)
                     if (parsed != null) {
+                        val defaultAccount = resolveDefaultAccount()
                         val pendingTxn = PendingTransaction(
                             amount = parsed.amount,
                             description = parsed.description,
                             category = parsed.category,
                             type = parsed.type,
-                            dateTime = parsed.dateTime
+                            dateTime = parsed.dateTime,
+                            accountId = defaultAccount?.id
                         )
-                        val confirmMessage = buildTransactionConfirmation(pendingTxn)
+                        val confirmMessage = buildTransactionConfirmation(pendingTxn, defaultAccount?.name)
                         val aiMessage = ChatMessage(content = confirmMessage, isUser = false)
                         _uiState.update { 
                             it.copy(
@@ -246,19 +252,24 @@ class ChatViewModel @Inject constructor(
         return hasAmount && hasKeyword
     }
     
-    private fun buildTransactionConfirmation(transaction: PendingTransaction): String {
+    private fun buildTransactionConfirmation(
+        transaction: PendingTransaction,
+        accountName: String?
+    ): String {
         val typeEmoji = if (transaction.type == TransactionType.INCOME) "💰" else "💸"
         val typeText = if (transaction.type == TransactionType.INCOME) "Income" else "Expense"
         val dateFormatter = DateTimeFormatter.ofPattern("MMM d, yyyy 'at' h:mm a")
-        
+
+        val accountLine = if (accountName != null) "\nAccount: $accountName" else ""
+
         return """$typeEmoji **Add $typeText?**
 
 Amount: ${CurrencyFormatter.formatRupees(transaction.amount)}
 Category: ${transaction.category.emoji} ${transaction.category.displayName}
 Description: ${transaction.description}
-Date: ${transaction.dateTime.format(dateFormatter)}
+Date: ${transaction.dateTime.format(dateFormatter)}$accountLine
 
-Reply **"yes"** to confirm or **"no"** to cancel."""
+Tap **Yes** to confirm or **No** to cancel."""
     }
     
     private fun isConfirmation(message: String): Boolean {
@@ -281,7 +292,8 @@ Reply **"yes"** to confirm or **"no"** to cancel."""
                     description = pending.description,
                     category = pending.category,
                     type = pending.type,
-                    dateTime = pending.dateTime
+                    dateTime = pending.dateTime,
+                    accountId = pending.accountId
                 )
                 
                 transactionRepository.insertTransaction(transaction)
@@ -359,6 +371,50 @@ User Question: $userQuery
 Please provide a helpful, concise response based on the budget data above. Include specific numbers and insights where relevant. Keep the response under 200 words."""
     }
     
+    /**
+     * Resolve the default account to stamp on AI-chat transactions. Validates
+     * the persisted preference against the database and falls back to
+     * `AccountRepository.getDefaultAccount()` (and clears stale prefs) so we
+     * never write a non-existent account id onto a transaction.
+     */
+    private suspend fun resolveDefaultAccount(): com.budgettracker.domain.model.Account? {
+        val prefId = preferencesManager.defaultAccountId
+        if (prefId > 0) {
+            val cached = accountRepository.getAccountById(prefId)
+            if (cached != null) return cached
+            // Pref points at an account that no longer exists — reset.
+            preferencesManager.defaultAccountId = -1L
+        }
+        val fallback = accountRepository.getDefaultAccount()
+        if (fallback != null) {
+            preferencesManager.defaultAccountId = fallback.id
+        }
+        return fallback
+    }
+
+    fun confirmPendingTransaction() {
+        val state = _uiState.value
+        if (state.pendingTransaction == null || state.isLoading) return
+        // Mark loading immediately so quick-action buttons disable before the
+        // insert starts; this also prevents double-tap from inserting twice.
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                messages = it.messages + ChatMessage(content = "Yes", isUser = true)
+            )
+        }
+        confirmTransaction()
+    }
+
+    fun cancelPendingTransaction() {
+        val state = _uiState.value
+        if (state.pendingTransaction == null || state.isLoading) return
+        _uiState.update {
+            it.copy(messages = it.messages + ChatMessage(content = "No", isUser = true))
+        }
+        cancelTransaction()
+    }
+
     fun clearChat() {
         _uiState.update { it.copy(messages = emptyList(), error = null) }
     }

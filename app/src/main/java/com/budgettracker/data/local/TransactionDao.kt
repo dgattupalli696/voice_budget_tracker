@@ -19,6 +19,16 @@ interface TransactionDao {
     @Query("SELECT SUM(amount) FROM transactions WHERE type = :type")
     fun getTotalByType(type: TransactionType): Flow<Double?>
 
+    @Query("SELECT COALESCE(SUM(amount), 0) FROM transactions WHERE accountId = :accountId AND type = :type")
+    suspend fun getTotalForAccount(accountId: Long, type: TransactionType): Double
+
+    /**
+     * Aggregated totals per (accountId, type). `accountId` may be null in the
+     * result for transactions that are not attached to an account ("Unassigned").
+     */
+    @Query("SELECT accountId, type, COALESCE(SUM(amount), 0) AS total FROM transactions GROUP BY accountId, type")
+    fun getAccountTotals(): Flow<List<AccountTotalRow>>
+
     @Query("SELECT * FROM transactions WHERE dateTime >= :startDate AND dateTime <= :endDate ORDER BY dateTime DESC")
     fun getTransactionsInRange(startDate: String, endDate: String): Flow<List<Transaction>>
 
