@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.budgettracker"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.budgettracker"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -86,8 +86,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     
     // LiteRT-LM for on-device AI models (.litertlm files)
-    // Pinned: 0.10+ requires Kotlin 2.3.0; project uses 2.1.20.
-    implementation("com.google.ai.edge.litertlm:litertlm-android:0.9.0-alpha06")
+    implementation("com.google.ai.edge.litertlm:litertlm-android:0.10.2")
     // Supports Gemma3-1B, Gemma-3n-E2B, phi-4-mini, qwen2.5-1.5b
     // Note: Does NOT reliably support emulators - use physical device
     

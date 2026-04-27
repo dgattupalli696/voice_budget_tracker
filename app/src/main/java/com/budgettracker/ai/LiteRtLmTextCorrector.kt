@@ -53,7 +53,7 @@ class LiteRtLmTextCorrector(
         return initMutex.withLock {
             if (isInitialized) return@withLock true
             withContext(Dispatchers.IO) {
-            try {
+                try {
                 // Log device info
                 FileLogger.i(TAG, "Device: ${Build.MANUFACTURER} ${Build.MODEL}")
                 FileLogger.i(TAG, "Android: ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})")
@@ -134,8 +134,9 @@ class LiteRtLmTextCorrector(
                 isInitialized = false
                 false
             }
+            }
         }
-        }
+    }
     
     private fun validateLiteRtLmFile(file: File): Boolean {
         return try {
