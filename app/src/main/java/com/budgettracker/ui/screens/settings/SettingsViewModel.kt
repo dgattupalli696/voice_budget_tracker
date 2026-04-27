@@ -53,6 +53,7 @@ class SettingsViewModel @Inject constructor(
                 selectedModelId = modelDownloadManager.selectedModelId.value,
                 customModelPath = modelDownloadManager.customModelPath.value,
                 modelCacheSizeMB = cacheSizeMB,
+                huggingFaceToken = modelDownloadManager.getHuggingFaceToken(),
                 modelDownloadState = if (modelDownloadManager.isModelAvailable()) 
                     ModelDownloadState.Downloaded 
                 else 
@@ -158,6 +159,19 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             textCorrectionManager.reinitialize()
         }
+    }
+    
+    fun cancelDownload() {
+        modelDownloadManager.cancelDownload()
+    }
+    
+    fun setHuggingFaceToken(token: String?) {
+        modelDownloadManager.setHuggingFaceToken(token)
+        _uiState.update { it.copy(huggingFaceToken = token?.takeIf { t -> t.isNotBlank() }) }
+    }
+    
+    fun getHuggingFaceToken(): String? {
+        return modelDownloadManager.getHuggingFaceToken()
     }
     
     fun setCustomModelPath(path: String) {

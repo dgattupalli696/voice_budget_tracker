@@ -61,7 +61,11 @@ class LiteRtLmTextCorrector(
                 val modelFile = if (modelPath != null) {
                     File(modelPath)
                 } else {
-                    File(context.filesDir, "models/model.litertlm")
+                    // Check external dir first (where ModelDownloadManager stores files)
+                    val externalDir = context.getExternalFilesDir(null)
+                    val externalModel = externalDir?.let { File(it, "models/model.litertlm") }
+                    if (externalModel?.exists() == true) externalModel
+                    else File(context.filesDir, "models/model.litertlm")
                 }
                 
                 FileLogger.i(TAG, "Model file path: ${modelFile.absolutePath}")

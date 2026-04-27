@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
@@ -22,7 +21,13 @@ import javax.inject.Singleton
 sealed class ModelDownloadState {
     object NotDownloaded : ModelDownloadState()
     object Checking : ModelDownloadState()
-    data class Downloading(val progress: Int, val downloadedMB: Int = 0, val totalMB: Int = 0) : ModelDownloadState()
+    data class Downloading(
+        val progress: Int,
+        val downloadedMB: Int = 0,
+        val totalMB: Int = 0,
+        val bytesPerSecond: Long = 0,
+        val remainingSeconds: Long = 0
+    ) : ModelDownloadState()
     object Downloaded : ModelDownloadState()
     data class Error(val message: String) : ModelDownloadState()
 }
@@ -35,7 +40,7 @@ data class AIModelInfo(
     val sizeBytes: Long,
     val url: String,
     val fileName: String,
-    val isImported: Boolean = false  // True for user-imported models
+    val isImported: Boolean = false
 )
 
 @Singleton
@@ -58,10 +63,16 @@ class ModelDownloadManager @Inject constructor(
     private val _importedModels = MutableStateFlow<List<AIModelInfo>>(emptyList())
     val importedModels: StateFlow<List<AIModelInfo>> = _importedModels.asStateFlow()
     
-    private val modelDir = File(context.filesDir, "models")
+    // Use external files dir (doesn't count against storage quota, survives app updates)
+    // Falls back to internal filesDir if external is unavailable
+    private val modelDir: File = (context.getExternalFilesDir(null)
+        ?: context.filesDir).let { File(it, "models") }
     
     @Volatile
     private var isDownloading = false
+    
+    @Volatile
+    private var cancelRequested = false
     
     // Available models from Hugging Face litert-community
     // Based on google-ai-edge/gallery model_allowlists/1_0_12.json
@@ -331,54 +342,150 @@ class ModelDownloadManager @Inject constructor(
         }
         
         isDownloading = true
+        cancelRequested = false
         
         try {
             modelDir.mkdirs()
             val targetFile = File(modelDir, modelInfo.fileName)
             val tempFile = File(modelDir, "${modelInfo.fileName}.tmp")
             
-            // Delete existing temp file
-            if (tempFile.exists()) tempFile.delete()
-            
             Log.d(TAG, "Starting download: ${modelInfo.url}")
-            emit(ModelDownloadState.Downloading(0, 0, (modelInfo.sizeBytes / 1_000_000).toInt()))
-            _downloadState.value = ModelDownloadState.Downloading(0, 0, (modelInfo.sizeBytes / 1_000_000).toInt())
+            Log.d(TAG, "Target: ${targetFile.absolutePath}")
+            
+            val totalMB = (modelInfo.sizeBytes / 1_000_000).toInt()
+            emit(ModelDownloadState.Downloading(0, 0, totalMB))
+            _downloadState.value = ModelDownloadState.Downloading(0, 0, totalMB)
             
             val url = URL(modelInfo.url)
             val connection = url.openConnection() as HttpURLConnection
-            connection.connectTimeout = 30000
-            connection.readTimeout = 30000
+            connection.connectTimeout = 30_000
+            connection.readTimeout = 300_000  // 5 min read timeout for large files
             connection.requestMethod = "GET"
+            connection.instanceFollowRedirects = true
             connection.setRequestProperty("User-Agent", "BudgetTracker/1.0")
             
-            val responseCode = connection.responseCode
-            if (responseCode != HttpURLConnection.HTTP_OK) {
-                throw Exception("Server returned: $responseCode ${connection.responseMessage}")
+            // HuggingFace access token for gated models (like Gemma)
+            // Based on google-ai-edge/gallery DownloadWorker pattern
+            val accessToken = getHuggingFaceToken()
+            if (accessToken != null) {
+                Log.d(TAG, "Using HF access token: ${accessToken.take(10)}...")
+                connection.setRequestProperty("Authorization", "Bearer $accessToken")
             }
             
-            val totalSize = connection.contentLength.toLong().takeIf { it > 0 } ?: modelInfo.sizeBytes
-            val totalMB = (totalSize / 1_000_000).toInt()
-            var downloadedBytes = 0L
+            // Resume support: check for partial download (like Google Gallery does)
+            var resumeOffset = 0L
+            if (tempFile.exists() && tempFile.length() > 0) {
+                resumeOffset = tempFile.length()
+                Log.d(TAG, "Resuming download from byte $resumeOffset")
+                connection.setRequestProperty("Range", "bytes=$resumeOffset-")
+                // Force non-compressed data for resume to work
+                connection.setRequestProperty("Accept-Encoding", "identity")
+            }
+            
+            val responseCode = connection.responseCode
+            Log.d(TAG, "Response code: $responseCode")
+            
+            when (responseCode) {
+                HttpURLConnection.HTTP_UNAUTHORIZED, 403 -> {
+                    connection.disconnect()
+                    if (accessToken == null) {
+                        throw Exception("This model requires a Hugging Face access token. " +
+                            "Go to huggingface.co/settings/tokens to create one, " +
+                            "then enter it in the token field below.")
+                    } else {
+                        throw Exception("Access denied. Your Hugging Face token may be invalid " +
+                            "or you haven't accepted the model's license agreement. " +
+                            "Visit the model page on huggingface.co and accept the license.")
+                    }
+                }
+                HttpURLConnection.HTTP_OK, HttpURLConnection.HTTP_PARTIAL -> {
+                    // OK - continue with download
+                }
+                else -> {
+                    connection.disconnect()
+                    throw Exception("Server returned HTTP $responseCode: ${connection.responseMessage}")
+                }
+            }
+            
+            // Parse total size from Content-Range or Content-Length
+            var downloadedBytes = resumeOffset
+            val totalSize: Long
+            if (responseCode == HttpURLConnection.HTTP_PARTIAL) {
+                val contentRange = connection.getHeaderField("Content-Range")
+                totalSize = if (contentRange != null) {
+                    val rangeParts = contentRange.substringAfter("bytes ").split("/")
+                    rangeParts.getOrNull(1)?.toLongOrNull() ?: modelInfo.sizeBytes
+                } else {
+                    modelInfo.sizeBytes
+                }
+                Log.d(TAG, "Resuming: downloaded=$downloadedBytes, total=$totalSize")
+            } else {
+                // Fresh download - delete any stale temp file
+                if (tempFile.exists()) tempFile.delete()
+                downloadedBytes = 0L
+                totalSize = connection.contentLength.toLong()
+                    .takeIf { it > 0 } ?: modelInfo.sizeBytes
+            }
+            
+            val totalMBActual = (totalSize / 1_000_000).toInt()
+            
+            // Sliding window for download rate calculation (like Google Gallery)
+            val bytesReadSizes = mutableListOf<Long>()
+            val bytesReadLatencies = mutableListOf<Long>()
             
             connection.inputStream.use { input ->
-                FileOutputStream(tempFile).use { output ->
-                    val buffer = ByteArray(8192)
+                FileOutputStream(tempFile, resumeOffset > 0).use { output ->
+                    val buffer = ByteArray(65536)  // 64KB buffer for large files
                     var bytesRead: Int
-                    var lastProgressUpdate = 0
+                    var lastProgressUpdate = System.currentTimeMillis()
+                    var deltaBytes = 0L
                     
                     while (input.read(buffer).also { bytesRead = it } != -1) {
+                        if (cancelRequested) {
+                            Log.d(TAG, "Download cancelled by user")
+                            throw Exception("Download cancelled")
+                        }
+                        
                         output.write(buffer, 0, bytesRead)
                         downloadedBytes += bytesRead
+                        deltaBytes += bytesRead
                         
-                        val progress = ((downloadedBytes * 100) / totalSize).toInt()
-                        val downloadedMB = (downloadedBytes / 1_000_000).toInt()
-                        
-                        // Update every 1%
-                        if (progress > lastProgressUpdate) {
-                            lastProgressUpdate = progress
-                            val state = ModelDownloadState.Downloading(progress, downloadedMB, totalMB)
+                        // Update progress every 200ms (like Google Gallery)
+                        val now = System.currentTimeMillis()
+                        if (now - lastProgressUpdate > 200) {
+                            // Calculate download rate using sliding window
+                            var bytesPerSecond = 0L
+                            if (lastProgressUpdate > 0) {
+                                val elapsed = now - lastProgressUpdate
+                                if (bytesReadSizes.size >= 5) bytesReadSizes.removeAt(0)
+                                bytesReadSizes.add(deltaBytes)
+                                if (bytesReadLatencies.size >= 5) bytesReadLatencies.removeAt(0)
+                                bytesReadLatencies.add(elapsed)
+                                
+                                val totalLatency = bytesReadLatencies.sum()
+                                if (totalLatency > 0) {
+                                    bytesPerSecond = bytesReadSizes.sum() * 1000 / totalLatency
+                                }
+                                deltaBytes = 0L
+                            }
+                            
+                            // Calculate remaining time
+                            val remainingSeconds = if (bytesPerSecond > 0 && totalSize > 0) {
+                                (totalSize - downloadedBytes) / bytesPerSecond
+                            } else 0L
+                            
+                            val progress = if (totalSize > 0) {
+                                ((downloadedBytes * 100) / totalSize).toInt().coerceIn(0, 99)
+                            } else 0
+                            val downloadedMB = (downloadedBytes / 1_000_000).toInt()
+                            
+                            val state = ModelDownloadState.Downloading(
+                                progress, downloadedMB, totalMBActual,
+                                bytesPerSecond, remainingSeconds
+                            )
                             emit(state)
                             _downloadState.value = state
+                            lastProgressUpdate = now
                         }
                     }
                 }
@@ -386,13 +493,14 @@ class ModelDownloadManager @Inject constructor(
             
             connection.disconnect()
             
-            // Verify download
-            if (tempFile.length() < totalSize * 0.9) {
-                tempFile.delete()
-                throw Exception("Download incomplete: ${tempFile.length()} bytes (expected ~$totalSize)")
+            // Verify download completeness
+            val downloadedSize = tempFile.length()
+            if (totalSize > 0 && downloadedSize < totalSize * 0.95) {
+                throw Exception("Download incomplete: got ${downloadedSize / 1_000_000}MB, " +
+                    "expected ~${totalSize / 1_000_000}MB. Try again to resume.")
             }
             
-            // Move to final location
+            // Move temp file to final location (atomic rename)
             if (targetFile.exists()) targetFile.delete()
             if (!tempFile.renameTo(targetFile)) {
                 tempFile.copyTo(targetFile, overwrite = true)
@@ -407,22 +515,46 @@ class ModelDownloadManager @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Download failed", e)
             val errorMessage = when {
-                e.message?.contains("Unable to resolve host") == true -> "No internet connection"
-                e.message?.contains("timeout") == true -> "Connection timeout - try again"
-                e.message?.contains("403") == true -> "Access denied - URL may have changed"
-                e.message?.contains("404") == true -> "Model file not found on server"
-                else -> e.message ?: "Unknown error"
+                e.message?.contains("cancelled") == true -> "Download cancelled"
+                e.message?.contains("Hugging Face") == true -> e.message ?: "Auth required"
+                e.message?.contains("Access denied") == true -> e.message ?: "Access denied"
+                e.message?.contains("Unable to resolve host") == true -> 
+                    "No internet connection. Check your network and try again."
+                e.message?.contains("timeout") == true || e.message?.contains("Timeout") == true -> 
+                    "Connection timed out. Try again on a stable connection."
+                e.message?.contains("HTTP 403") == true -> 
+                    "Access denied (403). Model may require a HuggingFace token."
+                e.message?.contains("HTTP 404") == true -> 
+                    "Model file not found on server (404). The URL may have changed."
+                e.message?.contains("incomplete") == true -> e.message ?: "Download incomplete"
+                else -> e.message ?: "Unknown download error"
             }
             _downloadState.value = ModelDownloadState.Error(errorMessage)
             emit(ModelDownloadState.Error(errorMessage))
         } finally {
             isDownloading = false
+            cancelRequested = false
         }
     }.flowOn(Dispatchers.IO)
     
     fun cancelDownload() {
+        cancelRequested = true
         isDownloading = false
         _downloadState.value = ModelDownloadState.NotDownloaded
+    }
+    
+    // HuggingFace access token management
+    // Based on google-ai-edge/gallery pattern for gated model access
+    fun setHuggingFaceToken(token: String?) {
+        if (token.isNullOrBlank()) {
+            prefs.edit().remove(KEY_HF_TOKEN).apply()
+        } else {
+            prefs.edit().putString(KEY_HF_TOKEN, token.trim()).apply()
+        }
+    }
+    
+    fun getHuggingFaceToken(): String? {
+        return prefs.getString(KEY_HF_TOKEN, null)?.takeIf { it.isNotBlank() }
     }
     
     fun deleteModel(modelId: String? = null) {
@@ -454,5 +586,7 @@ class ModelDownloadManager @Inject constructor(
         private const val TAG = "ModelDownloadManager"
         private const val KEY_IMPORTED_MODELS = "imported_models"
         private const val KEY_CURRENT_MODEL_PATH = "current_model_path"
+        private const val KEY_HF_TOKEN = "hf_access_token"
+        private const val TMP_FILE_EXT = "tmp"
     }
 }

@@ -12,7 +12,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.SmartToy
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.budgettracker.ai.AIModelInfo
 import com.budgettracker.ai.ModelDownloadState
 import com.budgettracker.ui.theme.Primary
 
@@ -68,13 +71,21 @@ fun SettingsScreen(
         ModelManagementDialog(
             downloadState = uiState.modelDownloadState,
             customModelPath = uiState.customModelPath,
+            availableModels = uiState.availableModels,
+            selectedModelId = uiState.selectedModelId,
             importedModels = uiState.importedModels,
             selectedBackend = uiState.selectedBackend,
             modelLoadError = uiState.modelLoadError,
             modelCacheSizeMB = uiState.modelCacheSizeMB,
+            huggingFaceToken = uiState.huggingFaceToken,
             onBrowseCustomPath = { filePickerLauncher.launch(arrayOf("*/*")) },
             onClearCustomPath = { viewModel.clearCustomModelPath() },
             onBackendSelected = { viewModel.selectBackend(it) },
+            onSelectModel = { viewModel.selectModel(it) },
+            onDownloadModel = { viewModel.downloadAIModel(it) },
+            onDeleteModel = { viewModel.deleteAIModel(it) },
+            onCancelDownload = { viewModel.cancelDownload() },
+            onSetHuggingFaceToken = { viewModel.setHuggingFaceToken(it) },
             onSelectImportedModel = { viewModel.selectImportedModel(it) },
             onRemoveImportedModel = { viewModel.removeImportedModel(it) },
             onDeleteImportedModelFile = { viewModel.deleteImportedModelFile(it) },
@@ -258,13 +269,21 @@ private fun LanguageSelectionDialog(
 private fun ModelManagementDialog(
     downloadState: ModelDownloadState,
     customModelPath: String?,
-    importedModels: List<com.budgettracker.ai.AIModelInfo>,
+    availableModels: List<AIModelInfo>,
+    selectedModelId: String,
+    importedModels: List<AIModelInfo>,
     selectedBackend: ModelBackend,
     modelLoadError: String?,
     modelCacheSizeMB: Long,
+    huggingFaceToken: String?,
     onBrowseCustomPath: () -> Unit,
     onClearCustomPath: () -> Unit,
     onBackendSelected: (ModelBackend) -> Unit,
+    onSelectModel: (String) -> Unit,
+    onDownloadModel: (String) -> Unit,
+    onDeleteModel: (String) -> Unit,
+    onCancelDownload: () -> Unit,
+    onSetHuggingFaceToken: (String?) -> Unit,
     onSelectImportedModel: (String) -> Unit,
     onRemoveImportedModel: (String) -> Unit,
     onDeleteImportedModelFile: (String) -> Unit,
@@ -331,6 +350,178 @@ private fun ModelManagementDialog(
                 
                 when (selectedTab) {
                     0 -> {
+                        // Available models for download
+                        Text(
+                            text = "Available Models:",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        availableModels.forEach { model ->
+                            val context = LocalContext.current
+                            val externalDir = context.getExternalFilesDir(null) ?: context.filesDir
+                            val modelFile = java.io.File(externalDir, "models/${model.fileName}")
+                            val isDownloaded = modelFile.exists() && modelFile.length() > 0
+                            val isSelected = model.id == selectedModelId
+                            val isCurrentlyDownloading = downloadState is ModelDownloadState.Downloading && isSelected
+                            
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onSelectModel(model.id) },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected)
+                                        MaterialTheme.colorScheme.primaryContainer
+                                    else
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        if (isDownloaded) {
+                                            Icon(
+                                                Icons.Default.Check,
+                                                contentDescription = "Downloaded",
+                                                tint = Primary,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                        }
+                                        Text(
+                                            text = model.name,
+                                            fontWeight = FontWeight.Medium,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Text(
+                                            text = model.size,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = model.description,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    
+                                    if (isCurrentlyDownloading) {
+                                        val dlState = downloadState as ModelDownloadState.Downloading
+                                        LinearProgressIndicator(
+                                            progress = { dlState.progress / 100f },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        val speedText = if (dlState.bytesPerSecond > 0) {
+                                            val mbPerSec = dlState.bytesPerSecond / 1_000_000f
+                                            if (mbPerSec >= 1) "%.1f MB/s".format(mbPerSec)
+                                            else "%.0f KB/s".format(dlState.bytesPerSecond / 1000f)
+                                        } else ""
+                                        val etaText = if (dlState.remainingSeconds > 0) {
+                                            val mins = dlState.remainingSeconds / 60
+                                            val secs = dlState.remainingSeconds % 60
+                                            if (mins > 0) " • ${mins}m ${secs}s left" else " • ${secs}s left"
+                                        } else ""
+                                        Text(
+                                            text = "${dlState.downloadedMB}/${dlState.totalMB} MB (${dlState.progress}%)$speedText$etaText",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        OutlinedButton(
+                                            onClick = onCancelDownload,
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                contentColor = MaterialTheme.colorScheme.error
+                                            )
+                                        ) {
+                                            Icon(Icons.Default.Close, contentDescription = null, Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Cancel", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    } else if (isDownloaded) {
+                                        OutlinedButton(
+                                            onClick = { onDeleteModel(model.id) },
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                contentColor = MaterialTheme.colorScheme.error
+                                            )
+                                        ) {
+                                            Icon(Icons.Default.Delete, contentDescription = null, Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Delete", style = MaterialTheme.typography.bodySmall)
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = { onDownloadModel(model.id) },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(Icons.Default.Download, contentDescription = null, Modifier.size(16.dp))
+                                            Spacer(modifier = Modifier.width(4.dp))
+                                            Text("Download")
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        
+                        // Download error
+                        if (downloadState is ModelDownloadState.Error) {
+                            Card(
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                )
+                            ) {
+                                Text(
+                                    text = "⚠️ ${downloadState.message}",
+                                    modifier = Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                        
+                        // HuggingFace access token (required for gated models like Gemma)
+                        var tokenInput by remember { mutableStateOf(huggingFaceToken ?: "") }
+                        var showToken by remember { mutableStateOf(false) }
+                        
+                        Text(
+                            text = "HuggingFace Token (for gated models):",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = if (showToken) tokenInput else tokenInput.replace(Regex("."), "•"),
+                            onValueChange = { 
+                                tokenInput = it
+                                onSetHuggingFaceToken(it.takeIf { t -> t.isNotBlank() })
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("hf_xxxx...", style = MaterialTheme.typography.bodySmall) },
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.bodySmall,
+                            trailingIcon = {
+                                IconButton(onClick = { showToken = !showToken }) {
+                                    Text(
+                                        if (showToken) "Hide" else "Show",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+                        )
+                        Text(
+                            text = "Get token at huggingface.co/settings/tokens. Required for Gemma models.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
                         // Imported models list
                         if (importedModels.isNotEmpty()) {
                             Text(

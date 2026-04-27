@@ -15,11 +15,12 @@ data class SettingsUiState(
     val modelDownloadState: ModelDownloadState = ModelDownloadState.NotDownloaded,
     val availableModels: List<AIModelInfo> = emptyList(),
     val importedModels: List<AIModelInfo> = emptyList(),
-    val selectedModelId: String = "gemma_2b_gpu",
+    val selectedModelId: String = "gemma3_1b",
     val customModelPath: String? = null,
     val selectedBackend: ModelBackend = ModelBackend.CPU,
     val modelLoadError: String? = null,
-    val modelCacheSizeMB: Long = 0
+    val modelCacheSizeMB: Long = 0,
+    val huggingFaceToken: String? = null
 )
 
 data class VoiceLanguage(
